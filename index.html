@@ -4,504 +4,152 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Paycheck Budget Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
     <style>
-        :root {
-            --bg: #07111f;
-            --bg2: #0c1a2d;
-            --card: rgba(255, 255, 255, 0.09);
-            --card-strong: rgba(255, 255, 255, 0.14);
-            --border: rgba(255, 255, 255, 0.16);
-            --text: #eef6ff;
-            --muted: #9fb1c7;
-            --green: #2ee59d;
-            --blue: #60a5fa;
-            --red: #ff6b6b;
-            --yellow: #ffd166;
-            --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
-            --radius: 22px;
-            --radius-sm: 14px;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: radial-gradient(circle at top left, rgba(46, 229, 157, 0.18), transparent 35%), radial-gradient(circle at top right, rgba(96, 165, 250, 0.18), transparent 35%), linear-gradient(135deg, var(--bg), var(--bg2));
-            color: var(--text);
+        .auth-shell {
             min-height: 100vh;
-        }
-
-        button, input, select, textarea {
-            font: inherit;
-        }
-
-        .app {
-            width: min(1220px, calc(100% - 28px));
-            margin: 0 auto;
-            padding: 28px 0 48px;
-        }
-
-        header {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 18px;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .auth-card {
+            width: min(420px, 100%);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+            border-radius: 24px;
+            padding: 28px;
+            backdrop-filter: blur(18px);
+        }
+
+        .auth-brand {
             margin-bottom: 22px;
         }
 
-        .brand h1 {
-            margin: 0;
-            font-size: clamp(2rem, 5vw, 4.1rem);
-            line-height: 0.95;
-            letter-spacing: -0.06em;
-        }
-
-        .brand p {
-            color: var(--muted);
-            max-width: 720px;
-            margin: 14px 0 0;
-            font-size: 1.02rem;
-        }
-
-        .pill {
-            border: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 999px;
-            padding: 10px 14px;
-            color: var(--muted);
-            white-space: nowrap;
-        }
-
-        .shell {
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: 20px;
-            align-items: start;
-        }
-
-        .sidebar, .panel, .card, .pay-card, .notice {
-            background: var(--card);
-            border: 1px solid var(--border);
-            backdrop-filter: blur(18px);
-            box-shadow: var(--shadow);
-            border-radius: var(--radius);
-        }
-
-        .sidebar {
-            padding: 14px;
-            position: sticky;
-            top: 16px;
-        }
-
-        .nav-btn {
-            width: 100%;
-            border: 0;
-            color: var(--muted);
-            background: transparent;
-            padding: 13px 14px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            margin: 3px 0;
-            transition: 160ms ease;
-            text-align: left;
-        }
-
-            .nav-btn:hover {
-                background: rgba(255, 255, 255, 0.08);
-                color: var(--text);
-            }
-
-            .nav-btn.active {
-                color: var(--text);
-                background: linear-gradient(135deg, rgba(96, 165, 250, 0.26), rgba(46, 229, 157, 0.15));
-                box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
-            }
-
-        .main {
-            min-width: 0;
-        }
-
-        .module {
-            display: none;
-            animation: fadeIn 180ms ease;
-        }
-
-            .module.active {
-                display: block;
-            }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(4px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .panel {
-            padding: clamp(18px, 3vw, 28px);
-            margin-bottom: 20px;
-        }
-
-        .module-title {
-            display: flex;
-            justify-content: space-between;
-            gap: 18px;
-            align-items: center;
-            margin-bottom: 18px;
-        }
-
-            .module-title h2 {
+            .auth-brand h1 {
                 margin: 0;
-                font-size: clamp(1.45rem, 3vw, 2.05rem);
-                letter-spacing: -0.035em;
+                font-size: 2rem;
+                line-height: 1;
+                letter-spacing: -0.05em;
             }
 
-            .module-title p {
-                margin: 6px 0 0;
-                color: var(--muted);
-            }
-
-        .grid {
-            display: grid;
-            gap: 14px;
-        }
-
-        .summary-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-
-        .two {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .card {
-            padding: 18px;
-            box-shadow: none;
-        }
-
-        .card-label {
-            color: var(--muted);
-            font-size: 0.86rem;
-            margin-bottom: 8px;
-        }
-
-        .card-value {
-            font-size: clamp(1.5rem, 4vw, 2.15rem);
-            font-weight: 800;
-            letter-spacing: -0.04em;
-            overflow-wrap: anywhere;
-        }
-
-        .positive {
-            color: var(--green);
-        }
-
-        .negative {
-            color: var(--red);
-        }
-
-        .blue {
-            color: var(--blue);
-        }
-
-        .yellow {
-            color: var(--yellow);
-        }
-
-        .muted {
-            color: var(--muted);
-        }
-
-        form {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px;
-            margin-top: 14px;
-        }
-
-        label {
-            display: grid;
-            gap: 7px;
-            color: var(--muted);
-            font-size: 0.88rem;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            border: 1px solid var(--border);
-            background: rgba(3, 10, 20, 0.48);
-            color: var(--text);
-            padding: 12px 13px;
-            border-radius: 14px;
-            outline: none;
-        }
-
-        textarea {
-            min-height: 46px;
-            resize: vertical;
-        }
-
-            input:focus, select:focus, textarea:focus {
-                border-color: rgba(96, 165, 250, 0.7);
-                box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12);
-            }
-
-        .full {
-            grid-column: 1 / -1;
-        }
-
-        .btn-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .btn {
-            border: 0;
-            cursor: pointer;
-            padding: 12px 15px;
-            border-radius: 14px;
-            color: #06111f;
-            background: var(--green);
-            font-weight: 800;
-            transition: transform 140ms ease, opacity 140ms ease;
-        }
-
-            .btn:hover {
-                transform: translateY(-1px);
-            }
-
-            .btn.secondary {
-                background: var(--blue);
-                color: #07111f;
-            }
-
-            .btn.danger {
-                background: rgba(255, 107, 107, 0.16);
-                color: #ffdede;
-                border: 1px solid rgba(255,107,107,0.35);
-            }
-
-            .btn.ghost {
-                background: rgba(255,255,255,0.08);
-                color: var(--text);
-                border: 1px solid var(--border);
-            }
-
-        .list {
-            display: grid;
-            gap: 10px;
-            margin-top: 14px;
-        }
-
-        .item {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 12px;
-            align-items: center;
-            padding: 14px;
-            border: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-        }
-
-            .item strong {
-                display: block;
-                margin-bottom: 4px;
-            }
-
-            .item small {
-                color: var(--muted);
+            .auth-brand p {
+                color: #9fb1c7;
+                margin: 12px 0 0;
                 line-height: 1.45;
             }
 
-        .quick-links {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+        .auth-mode-title {
+            margin: 0 0 6px;
+            font-size: 1.35rem;
         }
 
-        .quick-card {
-            text-align: left;
-            border: 1px solid var(--border);
-            background: rgba(255,255,255,0.07);
-            color: var(--text);
-            padding: 18px;
-            border-radius: 18px;
-            cursor: pointer;
-            transition: 160ms ease;
+        .auth-mode-subtitle {
+            margin: 0 0 18px;
+            color: #9fb1c7;
+            font-size: 0.94rem;
         }
 
-            .quick-card:hover {
-                transform: translateY(-2px);
-                background: rgba(255,255,255,0.11);
-            }
-
-            .quick-card span {
-                color: var(--muted);
-                display: block;
-                margin-top: 6px;
-            }
-
-        .pay-list {
+        .auth-form {
             display: grid;
-            gap: 16px;
+            gap: 12px;
         }
 
-        .pay-card {
-            padding: 18px;
-            box-shadow: none;
-        }
-
-        .pay-head {
-            display: flex;
-            justify-content: space-between;
-            gap: 14px;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 13px;
-            margin-bottom: 13px;
-        }
-
-        .money-grid {
-            display: grid;
-            grid-template-columns: repeat(6, minmax(0, 1fr));
-            gap: 10px;
-        }
-
-        .mini {
-            background: rgba(255,255,255,0.055);
-            border: 1px solid rgba(255,255,255,0.09);
-            border-radius: 14px;
-            padding: 12px;
-            min-width: 0;
-        }
-
-            .mini div:first-child {
-                color: var(--muted);
-                font-size: 0.76rem;
-                margin-bottom: 5px;
+            .auth-form label {
+                color: #9fb1c7;
+                font-size: 0.88rem;
+                display: grid;
+                gap: 7px;
             }
 
-            .mini div:last-child {
-                font-weight: 800;
-                overflow-wrap: anywhere;
+            .auth-form input {
+                width: 100%;
+                border: 1px solid rgba(255, 255, 255, 0.16);
+                background: rgba(3, 10, 20, 0.48);
+                color: #eef6ff;
+                padding: 13px 14px;
+                border-radius: 14px;
+                outline: none;
             }
 
-        details {
-            margin-top: 13px;
-            color: var(--muted);
+                .auth-form input:focus {
+                    border-color: rgba(96, 165, 250, 0.7);
+                    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12);
+                }
+
+        .password-row {
+            position: relative;
         }
 
-        summary {
+            .password-row input {
+                padding-right: 70px;
+            }
+
+        .password-toggle {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 0;
+            background: transparent;
+            color: #60a5fa;
             cursor: pointer;
-            color: var(--text);
+            padding: 6px 8px;
             font-weight: 700;
         }
 
-        .detail-list {
-            margin: 10px 0 0;
-            display: grid;
-            gap: 7px;
+        .auth-primary-btn {
+            border: 0;
+            cursor: pointer;
+            padding: 13px 15px;
+            border-radius: 14px;
+            color: #06111f;
+            background: #2ee59d;
+            font-weight: 800;
+            width: 100%;
+            margin-top: 4px;
         }
 
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 8px 10px;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.05);
-        }
+            .auth-primary-btn:disabled {
+                opacity: 0.65;
+                cursor: not-allowed;
+            }
 
-        .notice {
-            padding: 14px 16px;
-            color: var(--muted);
-            box-shadow: none;
-            margin-bottom: 14px;
+        .auth-error {
+            color: #ffb4b4;
+            background: rgba(255, 107, 107, 0.12);
+            border: 1px solid rgba(255, 107, 107, 0.28);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 0.9rem;
             display: none;
         }
 
-            .notice.show {
-                display: block;
-            }
-
-        .month-block {
+        .auth-switch {
             margin-top: 16px;
-            border: 1px solid var(--border);
-            background: rgba(255,255,255,0.055);
-            border-radius: 18px;
-            padding: 14px;
+            color: #9fb1c7;
+            text-align: center;
+            font-size: 0.92rem;
         }
 
-            .month-block h3 {
-                margin: 0 0 10px;
+            .auth-switch button {
+                border: 0;
+                background: transparent;
+                color: #60a5fa;
+                cursor: pointer;
+                font-weight: 800;
+                padding: 4px;
             }
 
-        .totals-table {
-            width: 100%;
-            border-collapse: collapse;
-            overflow: hidden;
-            border-radius: 12px;
-        }
-
-            .totals-table th, .totals-table td {
-                padding: 10px;
-                border-bottom: 1px solid rgba(255,255,255,0.09);
-                text-align: left;
-                color: var(--muted);
-            }
-
-            .totals-table th {
-                color: var(--text);
-                background: rgba(255,255,255,0.055);
-            }
-
-        @media (max-width: 920px) {
-            header {
-                display: block;
-            }
-
-            .pill {
-                display: inline-flex;
-                margin-top: 14px;
-            }
-
-            .shell {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                position: static;
-                display: flex;
-                gap: 8px;
-                overflow-x: auto;
-                border-radius: 18px;
-            }
-
-            .nav-btn {
-                white-space: nowrap;
-                width: auto;
-            }
-
-            .summary-grid, .quick-links, .two, form, .money-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .item, .pay-head {
-                grid-template-columns: 1fr;
-                display: grid;
-            }
+        .auth-footnote {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            color: #9fb1c7;
+            font-size: 0.84rem;
+            line-height: 1.45;
         }
     </style>
 </head>
@@ -509,17 +157,50 @@
 
     <!-- LOGIN SCREEN -->
     <div id="auth-screen">
-        <div style="display:flex;align-items:center;justify-content:center;height:100vh;">
-            <div style="background:rgba(255,255,255,0.05);padding:30px;border-radius:16px;width:320px;">
-                <h2>Sign in</h2>
+        <div class="auth-shell">
+            <div class="auth-card">
+                <div class="auth-brand">
+                    <h1>Paycheck Budget Dashboard</h1>
+                    <p>Plan your money paycheck by paycheck and sync your budget across devices.</p>
+                </div>
 
-                <input id="email" type="email" placeholder="Email" style="width:100%;margin-bottom:10px;padding:10px;">
-                <input id="password" type="password" placeholder="Password" style="width:100%;margin-bottom:10px;padding:10px;">
+                <h2 class="auth-mode-title" id="auth-title">Sign in</h2>
+                <p class="auth-mode-subtitle" id="auth-subtitle">Welcome back. Your cloud budget will load after sign in.</p>
 
-                <div id="auth-error" style="color:#ff6b6b;font-size:14px;margin-bottom:10px;display:none;"></div>
+                <div class="auth-form">
+                    <label>
+                        Email
+                        <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
+                    </label>
 
-                <button onclick="signIn()" style="width:100%;margin-bottom:5px;">Sign In</button>
-                <button onclick="signUp()" style="width:100%;">Create Account</button>
+                    <label>
+                        Password
+                        <div class="password-row">
+                            <input id="password"
+                                   type="password"
+                                   placeholder="Enter your password"
+                                   autocomplete="current-password">
+                            <button id="password-toggle"
+                                    class="password-toggle"
+                                    type="button">
+                                Show
+                            </button>
+                        </div>
+                    </label>
+
+                    <div id="auth-error" class="auth-error"></div>
+
+                    <button id="auth-submit" class="auth-primary-btn" type="button" onclick="handleAuthSubmit()">Sign In</button>
+                </div>
+
+                <div class="auth-switch">
+                    <span id="auth-switch-text">New here?</span>
+                    <button type="button" onclick="toggleAuthMode()" id="auth-switch-btn">Create an account</button>
+                </div>
+
+                <div class="auth-footnote">
+                    Your budget data is saved to your private cloud account so it can follow you between browsers and devices.
+                </div>
             </div>
         </div>
     </div>
@@ -550,6 +231,7 @@
                     <section class="module" id="primary"></section>
                     <section class="module" id="extra"></section>
                     <section class="module" id="recurring"></section>
+                    <section class="module" id="debts"></section>
                     <section class="module" id="categories"></section>
                     <section class="module" id="projection"></section>
                 </main>
@@ -566,6 +248,12 @@
             onAuthStateChanged,
             signOut
         } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import {
+            getFirestore,
+            doc,
+            getDoc,
+            setDoc
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyABAHKyKpsU60wAFCMgL4sQRns4gLnMIUA",
@@ -579,12 +267,15 @@
 
         const firebaseApp = initializeApp(firebaseConfig);
         const auth = getAuth(firebaseApp);
+        const db = getFirestore(firebaseApp);
+        let currentUser = null;
         const STORAGE_KEY = "paycheckBudgetDashboard.v1";
         const modules = [
             { id: "dashboard", label: "Dashboard", hint: "Overview" },
             { id: "primary", label: "Primary Income", hint: "Paychecks" },
             { id: "extra", label: "Additional Income", hint: "Bonuses" },
             { id: "recurring", label: "Recurring Payments", hint: "Bills" },
+            { id: "debts", label: "Debt Payments", hint: "Loans" },
             { id: "categories", label: "Spending Categories", hint: "Tracking" },
             { id: "projection", label: "Paycheck Projection", hint: "Cash flow" }
         ];
@@ -598,12 +289,13 @@
             },
             additionalIncome: [],
             recurringPayments: [],
+            debts: [],
             categories: [],
             spendingEntries: [],
             activeModule: "dashboard"
         };
 
-        let state = loadState();
+        let state = clone(defaultState);
 
         function clone(obj) {
             return JSON.parse(JSON.stringify(obj));
@@ -620,6 +312,7 @@
                     primary: { ...defaultState.primary, ...(parsed.primary || {}) },
                     additionalIncome: Array.isArray(parsed.additionalIncome) ? parsed.additionalIncome : [],
                     recurringPayments: Array.isArray(parsed.recurringPayments) ? parsed.recurringPayments : [],
+                    debts: Array.isArray(parsed.debts) ? parsed.debts : [],
                     categories: Array.isArray(parsed.categories) ? parsed.categories : [],
                     spendingEntries: Array.isArray(parsed.spendingEntries) ? parsed.spendingEntries : []
                 };
@@ -630,9 +323,43 @@
             }
         }
 
-        function saveState() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        async function saveState() {
+            if (!currentUser) return;
+
+            try {
+                await setDoc(doc(db, "users", currentUser.uid), {
+                    budgetData: state
+                });
+            } catch (error) {
+                showNotice("Cloud save failed. Check Firestore rules.");
+            }
         }
+
+        async function loadCloudState(user) {
+            const ref = doc(db, "users", user.uid);
+            const snap = await getDoc(ref);
+
+            if (!snap.exists()) {
+                state = clone(defaultState);
+                await saveState();
+                return;
+            }
+
+            const data = snap.data().budgetData || {};
+
+            state = {
+                ...clone(defaultState),
+                ...data,
+                primary: { ...defaultState.primary, ...(data.primary || {}) },
+                additionalIncome: Array.isArray(data.additionalIncome) ? data.additionalIncome : [],
+                recurringPayments: Array.isArray(data.recurringPayments) ? data.recurringPayments : [],
+                debts: Array.isArray(data.debts) ? data.debts : [],
+                categories: Array.isArray(data.categories) ? data.categories : [],
+                spendingEntries: Array.isArray(data.spendingEntries) ? data.spendingEntries : []
+            };
+        }
+
+        let authMode = "signIn";
 
         function showApp() {
             document.getElementById("auth-screen").style.display = "none";
@@ -642,6 +369,7 @@
         function showLogin() {
             document.getElementById("auth-screen").style.display = "block";
             document.getElementById("app").style.display = "none";
+            setAuthLoading(false);
         }
 
         function getAuthFields() {
@@ -683,28 +411,97 @@
             }
         }
 
-        window.signIn = async function () {
+        function setAuthLoading(isLoading) {
+            const button = document.getElementById("auth-submit");
+            if (!button) return;
+
+            button.disabled = isLoading;
+            if (isLoading) {
+                button.textContent = authMode === "signIn" ? "Signing in..." : "Creating account...";
+            } else {
+                button.textContent = authMode === "signIn" ? "Sign In" : "Create Account";
+            }
+        }
+
+        function togglePassword() {
+            const passwordInput = document.getElementById("password");
+            const toggleButton = document.getElementById("password-toggle");
+
+            if (!passwordInput || !toggleButton) return;
+
+            const isHidden = passwordInput.type === "password";
+
+            passwordInput.type = isHidden ? "text" : "password";
+            toggleButton.textContent = isHidden ? "Hide" : "Show";
+        }
+
+        const passwordToggleButton = document.getElementById("password-toggle");
+
+        if (passwordToggleButton) {
+            passwordToggleButton.addEventListener("click", togglePassword);
+        }
+
+        window.toggleAuthMode = function () {
+            authMode = authMode === "signIn" ? "signUp" : "signIn";
+            clearAuthError();
+
+            const title = document.getElementById("auth-title");
+            const subtitle = document.getElementById("auth-subtitle");
+            const switchText = document.getElementById("auth-switch-text");
+            const switchButton = document.getElementById("auth-switch-btn");
+            const passwordInput = document.getElementById("password");
+
+            if (authMode === "signIn") {
+                title.textContent = "Sign in";
+                subtitle.textContent = "Welcome back. Your cloud budget will load after sign in.";
+                switchText.textContent = "New here?";
+                switchButton.textContent = "Create an account";
+                passwordInput.placeholder = "Enter your password";
+                passwordInput.autocomplete = "current-password";
+            } else {
+                title.textContent = "Create account";
+                subtitle.textContent = "Create an account to save and sync your budget.";
+                switchText.textContent = "Already have an account?";
+                switchButton.textContent = "Sign in";
+                passwordInput.placeholder = "Create a password";
+                passwordInput.autocomplete = "new-password";
+            }
+
+            setAuthLoading(false);
+        };
+
+        window.handleAuthSubmit = async function () {
             clearAuthError();
 
             const { email, password } = getAuthFields();
 
+            if (!email || !password) {
+                showAuthError("Please enter your email and password.");
+                return;
+            }
+
+            setAuthLoading(true);
+
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                if (authMode === "signIn") {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } else {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                }
             } catch (error) {
                 showAuthError(friendlyAuthError(error));
+                setAuthLoading(false);
             }
         };
 
+        window.signIn = async function () {
+            authMode = "signIn";
+            await window.handleAuthSubmit();
+        };
+
         window.signUp = async function () {
-            clearAuthError();
-
-            const { email, password } = getAuthFields();
-
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                showAuthError(friendlyAuthError(error));
-            }
+            authMode = "signUp";
+            await window.handleAuthSubmit();
         };
 
         window.signOutUser = async function () {
@@ -885,16 +682,20 @@
 
         function generateRecurringOccurrences(item) {
             const finalDate = endOfYear();
-            const start = startOfYear();
+            const start = localDate(item.startDate) || startOfYear();
             const list = [];
             const dueDays = parseDueDays(item.dueDays);
             const amount = parseAmount(item.amount);
 
             if (item.frequency === "monthly" || item.frequency === "yearly") {
-                const months = item.frequency === "yearly" ? [0] : Array.from({ length: 12 }, (_, i) => i);
+                const months = item.frequency === "yearly"
+                    ? [start.getMonth()]
+                    : Array.from({ length: 12 - start.getMonth() }, (_, i) => start.getMonth() + i);
+
                 months.forEach(month => {
                     dueDays.forEach(day => {
                         const date = new Date(start.getFullYear(), month, day);
+
                         if (date.getMonth() === month && date >= start && date <= finalDate) {
                             list.push({ id: item.id, name: item.name, amount, date: dateKey(date) });
                         }
@@ -903,10 +704,9 @@
             }
 
             if (item.frequency === "weekly" || item.frequency === "biweekly") {
-                const firstDay = dueDays[0] || 1;
-                let date = new Date(start.getFullYear(), 0, firstDay);
-                while (date < start) date = addDays(date, item.frequency === "weekly" ? 7 : 14);
+                let date = new Date(start);
                 let safety = 0;
+
                 while (date <= finalDate && safety < 120) {
                     list.push({ id: item.id, name: item.name, amount, date: dateKey(date) });
                     date = addDays(date, item.frequency === "weekly" ? 7 : 14);
@@ -917,6 +717,34 @@
             return list.sort((a, b) => a.date.localeCompare(b.date));
         }
 
+        function generateDebtOccurrences(item) {
+            const start = localDate(item.startDate);
+            const end = localDate(item.endDate);
+
+            if (!start || !end) return [];
+
+            const list = [];
+            let date = new Date(start);
+            let safety = 0;
+
+            while (date <= end && date <= endOfYear() && safety < 300) {
+                list.push({
+                    id: item.id,
+                    name: item.name,
+                    amount: parseAmount(item.paymentAmount),
+                    date: dateKey(date)
+                });
+
+                if (item.frequency === "weekly") date = addDays(date, 7);
+                else if (item.frequency === "biweekly") date = addDays(date, 14);
+                else date = addMonths(date, 1);
+
+                safety++;
+            }
+
+            return list;
+        }
+
         function buildProjection() {
             const paychecks = generatePaychecks();
             const periods = paychecks.map(check => ({
@@ -924,11 +752,13 @@
                 startingBalance: 0,
                 additionalIncome: 0,
                 bills: 0,
+                debtPayments: 0,
                 categorySpending: 0,
                 netChange: 0,
                 endingBalance: 0,
                 extraDetails: [],
                 billDetails: [],
+                debtDetails: [],
                 spendingDetails: []
             }));
 
@@ -945,6 +775,14 @@
                 if (index >= 0) {
                     periods[index].bills += item.amount;
                     periods[index].billDetails.push(item);
+                }
+            });
+
+            state.debts.flatMap(generateDebtOccurrences).forEach(item => {
+                const index = getPeriodForDate(item.date, paychecks);
+                if (index >= 0) {
+                    periods[index].debtPayments += item.amount;
+                    periods[index].debtDetails.push(item);
                 }
             });
 
@@ -965,7 +803,7 @@
             let running = parseAmount(state.primary.currentCash);
             periods.forEach(period => {
                 period.startingBalance = running;
-                period.netChange = period.primaryIncome + period.additionalIncome - period.bills - period.categorySpending;
+                period.netChange = period.primaryIncome + period.additionalIncome - period.bills - period.debtPayments - period.categorySpending;
                 running += period.netChange;
                 period.endingBalance = running;
             });
@@ -1001,10 +839,10 @@
         function renderNav() {
             const nav = document.getElementById("nav");
             nav.innerHTML = modules.map(m => `
-                    <button class="nav-btn ${state.activeModule === m.id ? "active" : ""}" data-module="${m.id}" type="button">
-                      <span>${m.label}</span><small>${m.hint}</small>
-                    </button>
-                  `).join("");
+                        <button class="nav-btn ${state.activeModule === m.id ? "active" : ""}" data-module="${m.id}" type="button">
+                          <span>${m.label}</span><small>${m.hint}</small>
+                        </button>
+                      `).join("");
 
             nav.querySelectorAll(".nav-btn").forEach(btn => {
                 btn.addEventListener("click", () => setActiveModule(btn.dataset.module));
@@ -1015,40 +853,42 @@
             const el = document.getElementById("dashboard");
             const balance = dec31Balance();
             el.innerHTML = `
-                    <div class="panel">
-                      <div class="module-title">
-                        <div>
-                          <h2>Dashboard</h2>
-                          <p>Your quick financial snapshot without crowding the workspace.</p>
-                        </div>
-                      </div>
+                        <div class="panel">
+                          <div class="module-title">
+                            <div>
+                              <h2>Dashboard</h2>
+                              <p>Your quick financial snapshot without crowding the workspace.</p>
+                            </div>
+                          </div>
 
-                      <div class="grid summary-grid">
-                        ${summaryCard("Projected Dec 31 Balance", money(balance), balance < 0 ? "negative" : "positive")}
-                        ${summaryCard("Current Available Balance", money(state.primary.currentCash), parseAmount(state.primary.currentCash) < 0 ? "negative" : "positive")}
-                        ${summaryCard("Current Month Spending", money(currentMonthSpendingTotal()), "yellow")}
-                        ${summaryCard("Recurring Payments", state.recurringPayments.length, "blue")}
-                        ${summaryCard("Additional Income Items", state.additionalIncome.length, "positive")}
-                        ${summaryCard("Spending Categories", state.categories.length, "blue")}
-                      </div>
-                    </div>
-
-                    <div class="panel">
-                      <div class="module-title">
-                        <div>
-                          <h2>Jump into a module</h2>
-                          <p>Open one focused budgeting area at a time.</p>
+                          <div class="grid summary-grid">
+                            ${summaryCard("Projected Dec 31 Balance", money(balance), balance < 0 ? "negative" : "positive")}
+                            ${summaryCard("Current Available Balance", money(state.primary.currentCash), parseAmount(state.primary.currentCash) < 0 ? "negative" : "positive")}
+                            ${summaryCard("Current Month Spending", money(currentMonthSpendingTotal()), "yellow")}
+                            ${summaryCard("Recurring Payments", state.recurringPayments.length, "blue")}
+                            ${summaryCard("Debt Payments", state.debts.length, "yellow")}
+                            ${summaryCard("Additional Income Items", state.additionalIncome.length, "positive")}
+                            ${summaryCard("Spending Categories", state.categories.length, "blue")}
+                          </div>
                         </div>
-                      </div>
-                      <div class="grid quick-links">
-                        ${quickCard("Primary Income", "Set paycheck amount, interval, and available cash.", "primary")}
-                        ${quickCard("Additional Income", "Add bonuses, reimbursements, and side income.", "extra")}
-                        ${quickCard("Recurring Payments", "Track bills and repeating payments.", "recurring")}
-                        ${quickCard("Spending Categories", "Create budgets and log spending entries.", "categories")}
-                        ${quickCard("Paycheck Projection", "Review paycheck-by-paycheck cash flow.", "projection")}
-                      </div>
-                    </div>
-                  `;
+
+                        <div class="panel">
+                          <div class="module-title">
+                            <div>
+                              <h2>Jump into a module</h2>
+                              <p>Open one focused budgeting area at a time.</p>
+                            </div>
+                          </div>
+                          <div class="grid quick-links">
+                            ${quickCard("Primary Income", "Set paycheck amount, interval, and available cash.", "primary")}
+                            ${quickCard("Additional Income", "Add bonuses, reimbursements, and side income.", "extra")}
+                            ${quickCard("Recurring Payments", "Track bills and repeating payments.", "recurring")}
+                            ${quickCard("Debt Payments", "Add loans with regular payments and payoff dates.", "debts")}
+                            ${quickCard("Spending Categories", "Create budgets and log spending entries.", "categories")}
+                            ${quickCard("Paycheck Projection", "Review paycheck-by-paycheck cash flow.", "projection")}
+                          </div>
+                        </div>
+                      `;
 
             el.querySelectorAll("[data-jump]").forEach(btn => {
                 btn.addEventListener("click", () => setActiveModule(btn.dataset.jump));
@@ -1057,58 +897,58 @@
 
         function summaryCard(label, value, cls = "") {
             return `
-                    <div class="card">
-                      <div class="card-label">${escapeHtml(label)}</div>
-                      <div class="card-value ${cls}">${escapeHtml(value)}</div>
-                    </div>
-                  `;
+                        <div class="card">
+                          <div class="card-label">${escapeHtml(label)}</div>
+                          <div class="card-value ${cls}">${escapeHtml(value)}</div>
+                        </div>
+                      `;
         }
 
         function quickCard(title, subtitle, module) {
             return `
-                    <button class="quick-card" type="button" data-jump="${module}">
-                      <strong>${escapeHtml(title)}</strong>
-                      <span>${escapeHtml(subtitle)}</span>
-                    </button>
-                  `;
+                        <button class="quick-card" type="button" data-jump="${module}">
+                          <strong>${escapeHtml(title)}</strong>
+                          <span>${escapeHtml(subtitle)}</span>
+                        </button>
+                      `;
         }
 
         function renderPrimary() {
             const el = document.getElementById("primary");
             el.innerHTML = `
-                    <div class="panel">
-                      <div class="module-title">
-                        <div>
-                          <h2>Primary Income</h2>
-                          <p>Set your main paycheck pattern and starting available money.</p>
-                        </div>
-                      </div>
+                        <div class="panel">
+                          <div class="module-title">
+                            <div>
+                              <h2>Primary Income</h2>
+                              <p>Set your main paycheck pattern and starting available money.</p>
+                            </div>
+                          </div>
 
-                      <form id="primaryForm">
-                        <label>Paycheck amount
-                          <input type="number" step="0.01" min="0" name="amount" value="${escapeHtml(state.primary.amount)}" required>
-                        </label>
-                        <label>Pay interval
-                          <select name="interval">
-                            ${option("weekly", "Weekly", state.primary.interval)}
-                            ${option("biweekly", "Biweekly", state.primary.interval)}
-                            ${option("twiceMonthly", "Twice monthly", state.primary.interval)}
-                            ${option("monthly", "Monthly", state.primary.interval)}
-                          </select>
-                        </label>
-                        <label>Next paycheck date
-                          <input type="date" name="nextDate" value="${escapeHtml(state.primary.nextDate || getDateInputDefault())}" required>
-                        </label>
-                        <label>Money available right now
-                          <input type="number" step="0.01" name="currentCash" value="${escapeHtml(state.primary.currentCash)}" required>
-                        </label>
-                        <div class="full btn-row">
-                          <button class="btn" type="submit">Save primary income</button>
-                          <button class="btn secondary" type="button" data-jump="projection">View projection</button>
+                          <form id="primaryForm">
+                            <label>Paycheck amount
+                              <input type="number" step="0.01" min="0" name="amount" value="${escapeHtml(state.primary.amount)}" required>
+                            </label>
+                            <label>Pay interval
+                              <select name="interval">
+                                ${option("weekly", "Weekly", state.primary.interval)}
+                                ${option("biweekly", "Biweekly", state.primary.interval)}
+                                ${option("twiceMonthly", "Twice monthly", state.primary.interval)}
+                                ${option("monthly", "Monthly", state.primary.interval)}
+                              </select>
+                            </label>
+                            <label>Next paycheck date
+                              <input type="date" name="nextDate" value="${escapeHtml(state.primary.nextDate || getDateInputDefault())}" required>
+                            </label>
+                            <label>Money available right now
+                              <input type="number" step="0.01" name="currentCash" value="${escapeHtml(state.primary.currentCash)}" required>
+                            </label>
+                            <div class="full btn-row">
+                              <button class="btn" type="submit">Save primary income</button>
+                              <button class="btn secondary" type="button" data-jump="projection">View projection</button>
+                            </div>
+                          </form>
                         </div>
-                      </form>
-                    </div>
-                  `;
+                      `;
 
             document.getElementById("primaryForm").addEventListener("submit", event => {
                 event.preventDefault();
@@ -1140,48 +980,48 @@
         function renderAdditionalIncome() {
             const el = document.getElementById("extra");
             el.innerHTML = `
-                    <div class="panel">
-                      <div class="module-title">
-                        <div>
-                          <h2>Additional Income</h2>
-                          <p>Add extra money and let it increase the correct paycheck period.</p>
-                        </div>
-                      </div>
+                        <div class="panel">
+                          <div class="module-title">
+                            <div>
+                              <h2>Additional Income</h2>
+                              <p>Add extra money and let it increase the correct paycheck period.</p>
+                            </div>
+                          </div>
 
-                      <form id="extraForm">
-                        <label>Income name
-                          <input name="name" placeholder="Bonus, side job, reimbursement" required>
-                        </label>
-                        <label>Amount
-                          <input type="number" step="0.01" min="0" name="amount" required>
-                        </label>
-                        <label>Start/pay date
-                          <input type="date" name="date" value="${getDateInputDefault()}" required>
-                        </label>
-                        <label>Frequency
-                          <select name="frequency">
-                            <option value="oneTime">One time</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="biweekly">Biweekly</option>
-                            <option value="monthly">Monthly</option>
-                          </select>
-                        </label>
-                        <div class="full btn-row">
-                          <button class="btn" type="submit">Add income</button>
-                        </div>
-                      </form>
+                          <form id="extraForm">
+                            <label>Income name
+                              <input name="name" placeholder="Bonus, side job, reimbursement" required>
+                            </label>
+                            <label>Amount
+                              <input type="number" step="0.01" min="0" name="amount" required>
+                            </label>
+                            <label>Start/pay date
+                              <input type="date" name="date" value="${getDateInputDefault()}" required>
+                            </label>
+                            <label>Frequency
+                              <select name="frequency">
+                                <option value="oneTime">One time</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="biweekly">Biweekly</option>
+                                <option value="monthly">Monthly</option>
+                              </select>
+                            </label>
+                            <div class="full btn-row">
+                              <button class="btn" type="submit">Add income</button>
+                            </div>
+                          </form>
 
-                      <div class="list">
-                        ${state.additionalIncome.length ? state.additionalIncome.map(item => listItem(
+                          <div class="list">
+                            ${state.additionalIncome.length ? state.additionalIncome.map(item => listItem(
                 item.name,
                 `${money(item.amount)} � ${formatDate(item.date)} � ${frequencyLabel(item.frequency)}`,
                 "Remove",
                 item.id,
                 "remove-extra"
             )).join("") : emptyText("No additional income has been added yet.")}
-                      </div>
-                    </div>
-                  `;
+                          </div>
+                        </div>
+                      `;
 
             document.getElementById("extraForm").addEventListener("submit", event => {
                 event.preventDefault();
@@ -1223,14 +1063,14 @@
 
         function listItem(title, subtitle, buttonText, id, actionName) {
             return `
-                    <div class="item">
-                      <div>
-                        <strong>${escapeHtml(title)}</strong>
-                        <small>${escapeHtml(subtitle)}</small>
-                      </div>
-                      <button class="btn danger" type="button" data-${actionName}="${escapeHtml(id)}">${escapeHtml(buttonText)}</button>
-                    </div>
-                  `;
+                        <div class="item">
+                          <div>
+                            <strong>${escapeHtml(title)}</strong>
+                            <small>${escapeHtml(subtitle)}</small>
+                          </div>
+                          <button class="btn danger" type="button" data-${actionName}="${escapeHtml(id)}">${escapeHtml(buttonText)}</button>
+                        </div>
+                      `;
         }
 
         function emptyText(text) {
@@ -1240,48 +1080,53 @@
         function renderRecurringPayments() {
             const el = document.getElementById("recurring");
             el.innerHTML = `
-                    <div class="panel">
-                      <div class="module-title">
-                        <div>
-                          <h2>Recurring Payments</h2>
-                          <p>Add repeating bills. Due days can be one day or multiple days like 1,15.</p>
-                        </div>
-                      </div>
+                        <div class="panel">
+                          <div class="module-title">
+                            <div>
+                              <h2>Recurring Payments</h2>
+                              <p>Add repeating bills. Due days can be one day or multiple days like 1,15.</p>
+                            </div>
+                          </div>
 
-                      <form id="billForm">
-                        <label>Payment name
-                          <input name="name" placeholder="Rent, phone, utility" required>
-                        </label>
-                        <label>Amount
-                          <input type="number" step="0.01" min="0" name="amount" required>
-                        </label>
-                        <label>Due day or days
-                          <input name="dueDays" placeholder="1 or 1,15" required>
-                        </label>
-                        <label>Frequency
-                          <select name="frequency">
-                            <option value="monthly">Monthly</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="biweekly">Biweekly</option>
-                            <option value="yearly">Yearly</option>
-                          </select>
-                        </label>
-                        <div class="full btn-row">
-                          <button class="btn" type="submit">Add recurring payment</button>
-                        </div>
-                      </form>
+                          <form id="billForm">
+                            <label>Payment name
+                              <input name="name" placeholder="Rent, phone, utility" required>
+                            </label>
+                            <label>Amount
+                              <input type="number" step="0.01" min="0" name="amount" required>
+                            </label>
 
-                      <div class="list">
-                        ${state.recurringPayments.length ? state.recurringPayments.map(item => listItem(
+                            <label>Start date
+                              <input type="date" name="startDate" value="${getDateInputDefault()}" required>
+                            </label>
+
+                            <label>Due day or days
+                              <input name="dueDays" placeholder="1 or 1,15" required>
+                            </label>
+                            <label>Frequency
+                              <select name="frequency">
+                                <option value="monthly">Monthly</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="biweekly">Biweekly</option>
+                                <option value="yearly">Yearly</option>
+                              </select>
+                            </label>
+                            <div class="full btn-row">
+                              <button class="btn" type="submit">Add recurring payment</button>
+                            </div>
+                          </form>
+
+                          <div class="list">
+                            ${state.recurringPayments.length ? state.recurringPayments.map(item => listItem(
                 item.name,
                 `${money(item.amount)} � Due ${item.dueDays} � ${frequencyLabel(item.frequency)}`,
                 "Remove",
                 item.id,
                 "remove-bill"
             )).join("") : emptyText("No recurring payments have been added yet.")}
-                      </div>
-                    </div>
-                  `;
+                          </div>
+                        </div>
+                      `;
 
             document.getElementById("billForm").addEventListener("submit", event => {
                 event.preventDefault();
@@ -1292,7 +1137,8 @@
                     name: form.get("name").trim(),
                     amount: parseAmount(form.get("amount")),
                     dueDays,
-                    frequency: form.get("frequency")
+                    frequency: form.get("frequency"),
+                    startDate: form.get("startDate")
                 };
 
                 if (!item.name || item.amount <= 0 || !parseDueDays(dueDays).length) {
@@ -1314,76 +1160,164 @@
             });
         }
 
+        function renderDebts() {
+            const el = document.getElementById("debts");
+
+            el.innerHTML = `
+                        <div class="panel">
+                          <div class="module-title">
+                            <div>
+                              <h2>Debt Payments</h2>
+                              <p>Add debts with regular payments and an end/payoff date.</p>
+                            </div>
+                          </div>
+
+                          <form id="debtForm">
+                            <label>Debt name
+                              <input name="name" placeholder="Car loan, mortgage, credit line" required>
+                            </label>
+                            <label>Current balance
+                              <input type="number" step="0.01" min="0" name="currentBalance" required>
+                            </label>
+                            <label>Regular payment amount
+                              <input type="number" step="0.01" min="0" name="paymentAmount" required>
+                            </label>
+                            <label>Frequency
+                              <select name="frequency">
+                                <option value="monthly">Monthly</option>
+                                <option value="biweekly">Biweekly</option>
+                                <option value="weekly">Weekly</option>
+                              </select>
+                            </label>
+                            <label>Start date
+                              <input type="date" name="startDate" value="${getDateInputDefault()}" required>
+                            </label>
+                            <label>End / payoff date
+                              <input type="date" name="endDate" required>
+                            </label>
+                            <div class="full btn-row">
+                              <button class="btn" type="submit">Add debt payment</button>
+                            </div>
+                          </form>
+
+                          <div class="list">
+                            ${state.debts.length ? state.debts.map(item => listItem(
+                item.name,
+                `${money(item.paymentAmount)} ${frequencyLabel(item.frequency)} until ${formatDate(item.endDate)} | Balance: ${money(item.currentBalance)}`,
+                "Remove",
+                item.id,
+                "remove-debt"
+            )).join("") : emptyText("No debt payments have been added yet.")}
+                          </div>
+                        </div>
+                      `;
+
+            document.getElementById("debtForm").addEventListener("submit", event => {
+                event.preventDefault();
+                const form = new FormData(event.target);
+                const item = {
+                    id: uid(),
+                    name: form.get("name").trim(),
+                    currentBalance: parseAmount(form.get("currentBalance")),
+                    paymentAmount: parseAmount(form.get("paymentAmount")),
+                    frequency: form.get("frequency"),
+                    startDate: form.get("startDate"),
+                    endDate: form.get("endDate")
+                };
+
+                if (!item.name || item.paymentAmount <= 0 || !item.startDate || !item.endDate) {
+                    return showNotice("Please enter a valid debt name, payment amount, start date, and end date.");
+                }
+
+                if (localDate(item.endDate) < localDate(item.startDate)) {
+                    return showNotice("The end date must be after the start date.");
+                }
+
+                state.debts.push(item);
+                saveState();
+                renderAll();
+                showNotice("Debt payment added.");
+            });
+
+            el.querySelectorAll("[data-remove-debt]").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    state.debts = state.debts.filter(item => item.id !== btn.dataset.removeDebt);
+                    saveState();
+                    renderAll();
+                });
+            });
+        }
+
         function renderCategories() {
             const el = document.getElementById("categories");
             el.innerHTML = `
-                    <div class="panel">
-                      <div class="module-title">
-                        <div>
-                          <h2>Spending Categories</h2>
-                          <p>Create monthly budget buckets, add entries, and remove accidental entries.</p>
-                        </div>
-                      </div>
-
-                      <div class="grid two">
-                        <div class="card">
-                          <h3>Create category</h3>
-                          <form id="categoryForm">
-                            <label class="full">Category name
-                              <input name="name" placeholder="Groceries, gas, pet supplies" required>
-                            </label>
-                            <label class="full">Monthly budget or goal
-                              <input type="number" step="0.01" min="0" name="budget" placeholder="Optional">
-                            </label>
-                            <div class="full btn-row">
-                              <button class="btn" type="submit">Add category</button>
+                        <div class="panel">
+                          <div class="module-title">
+                            <div>
+                              <h2>Spending Categories</h2>
+                              <p>Create monthly budget buckets, add entries, and remove accidental entries.</p>
                             </div>
-                          </form>
-                        </div>
+                          </div>
 
-                        <div class="card">
-                          <h3>Add spending entry</h3>
-                          <form id="spendingForm">
-                            <label class="full">Category
-                              <select name="categoryId" required>
-                                <option value="">Choose category</option>
-                                ${state.categories.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>`).join("")}
-                              </select>
-                            </label>
-                            <label>Amount spent
-                              <input type="number" step="0.01" min="0" name="amount" required>
-                            </label>
-                            <label>Date
-                              <input type="date" name="date" value="${getDateInputDefault()}" required>
-                            </label>
-                            <label class="full">Note
-                              <textarea name="note" placeholder="Optional note"></textarea>
-                            </label>
-                            <div class="full btn-row">
-                              <button class="btn" type="submit">Add spending</button>
+                          <div class="grid two">
+                            <div class="card">
+                              <h3>Create category</h3>
+                              <form id="categoryForm">
+                                <label class="full">Category name
+                                  <input name="name" placeholder="Groceries, gas, pet supplies" required>
+                                </label>
+                                <label class="full">Monthly budget or goal
+                                  <input type="number" step="0.01" min="0" name="budget" placeholder="Optional">
+                                </label>
+                                <div class="full btn-row">
+                                  <button class="btn" type="submit">Add category</button>
+                                </div>
+                              </form>
                             </div>
-                          </form>
-                        </div>
-                      </div>
 
-                      <div class="grid two" style="margin-top:16px;">
-                        <div class="card">
-                          <h3>Categories</h3>
-                          <div class="list">
-                            ${state.categories.length ? state.categories.map(c => listItem(
+                            <div class="card">
+                              <h3>Add spending entry</h3>
+                              <form id="spendingForm">
+                                <label class="full">Category
+                                  <select name="categoryId" required>
+                                    <option value="">Choose category</option>
+                                    ${state.categories.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>`).join("")}
+                                  </select>
+                                </label>
+                                <label>Amount spent
+                                  <input type="number" step="0.01" min="0" name="amount" required>
+                                </label>
+                                <label>Date
+                                  <input type="date" name="date" value="${getDateInputDefault()}" required>
+                                </label>
+                                <label class="full">Note
+                                  <textarea name="note" placeholder="Optional note"></textarea>
+                                </label>
+                                <div class="full btn-row">
+                                  <button class="btn" type="submit">Add spending</button>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+
+                          <div class="grid two" style="margin-top:16px;">
+                            <div class="card">
+                              <h3>Categories</h3>
+                              <div class="list">
+                                ${state.categories.length ? state.categories.map(c => listItem(
                 c.name,
                 `Monthly budget: ${money(c.budget || 0)}`,
                 "Remove",
                 c.id,
                 "remove-category"
             )).join("") : emptyText("No spending categories yet.")}
-                          </div>
-                        </div>
+                              </div>
+                            </div>
 
-                        <div class="card">
-                          <h3>Spending entries</h3>
-                          <div class="list">
-                            ${state.spendingEntries.length ? state.spendingEntries.map(entry => {
+                            <div class="card">
+                              <h3>Spending entries</h3>
+                              <div class="list">
+                                ${state.spendingEntries.length ? state.spendingEntries.map(entry => {
                 const category = state.categories.find(c => c.id === entry.categoryId);
                 return listItem(
                     category ? category.name : "Deleted category",
@@ -1393,21 +1327,21 @@
                     "remove-entry"
                 );
             }).join("") : emptyText("No spending entries yet.")}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
 
-                    <div class="panel">
-                      <div class="module-title">
-                        <div>
-                          <h2>Monthly Category Totals</h2>
-                          <p>Scan each month by category total and remaining budget.</p>
+                        <div class="panel">
+                          <div class="module-title">
+                            <div>
+                              <h2>Monthly Category Totals</h2>
+                              <p>Scan each month by category total and remaining budget.</p>
+                            </div>
+                          </div>
+                          ${renderMonthlyTotals()}
                         </div>
-                      </div>
-                      ${renderMonthlyTotals()}
-                    </div>
-                  `;
+                      `;
 
             document.getElementById("categoryForm").addEventListener("submit", event => {
                 event.preventDefault();
@@ -1491,22 +1425,22 @@
             return rowsByMonth.map((rows, month) => {
                 if (!rows.length) return "";
                 return `
-                      <div class="month-block">
-                        <h3>${monthName(month)}</h3>
-                        <table class="totals-table">
-                          <thead><tr><th>Category</th><th>Total Spent</th><th>Remaining</th></tr></thead>
-                          <tbody>
-                            ${rows.map(row => `
-                              <tr>
-                                <td>${escapeHtml(row.category)}</td>
-                                <td>${money(row.spent)}</td>
-                                <td class="${row.remaining < 0 ? "negative" : "positive"}">${money(row.remaining)}</td>
-                              </tr>
-                            `).join("")}
-                          </tbody>
-                        </table>
-                      </div>
-                    `;
+                          <div class="month-block">
+                            <h3>${monthName(month)}</h3>
+                            <table class="totals-table">
+                              <thead><tr><th>Category</th><th>Total Spent</th><th>Remaining</th></tr></thead>
+                              <tbody>
+                                ${rows.map(row => `
+                                  <tr>
+                                    <td>${escapeHtml(row.category)}</td>
+                                    <td>${money(row.spent)}</td>
+                                    <td class="${row.remaining < 0 ? "negative" : "positive"}">${money(row.remaining)}</td>
+                                  </tr>
+                                `).join("")}
+                              </tbody>
+                            </table>
+                          </div>
+                        `;
             }).join("") || emptyText("No monthly totals yet.");
         }
 
@@ -1515,50 +1449,52 @@
             const projection = buildProjection();
 
             el.innerHTML = `
-                    <div class="panel">
-                      <div class="module-title">
-                        <div>
-                          <h2>Paycheck Projection</h2>
-                          <p>Running projected balance through December 31.</p>
-                        </div>
-                        <div class="pill">Final: <strong class="${dec31Balance() < 0 ? "negative" : "positive"}">${money(dec31Balance())}</strong></div>
-                      </div>
+                        <div class="panel">
+                          <div class="module-title">
+                            <div>
+                              <h2>Paycheck Projection</h2>
+                              <p>Running projected balance through December 31.</p>
+                            </div>
+                            <div class="pill">Final: <strong class="${dec31Balance() < 0 ? "negative" : "positive"}">${money(dec31Balance())}</strong></div>
+                          </div>
 
-                      ${projection.length ? `<div class="pay-list">${projection.map(renderPaycheckCard).join("")}</div>` : emptyText("Enter primary income first to generate your paycheck schedule.")}
-                    </div>
-                  `;
+                          ${projection.length ? `<div class="pay-list">${projection.map(renderPaycheckCard).join("")}</div>` : emptyText("Enter primary income first to generate your paycheck schedule.")}
+                        </div>
+                      `;
         }
 
         function renderPaycheckCard(period) {
             return `
-                    <article class="pay-card">
-                      <div class="pay-head">
-                        <div>
-                          <strong>Paycheck #${period.number}</strong>
-                          <div class="muted">${formatDate(period.date)}</div>
-                        </div>
-                        <div class="card-value ${period.endingBalance < 0 ? "negative" : "positive"}">${money(period.endingBalance)}</div>
-                      </div>
+                        <article class="pay-card">
+                          <div class="pay-head">
+                            <div>
+                              <strong>Paycheck #${period.number}</strong>
+                              <div class="muted">${formatDate(period.date)}</div>
+                            </div>
+                            <div class="card-value ${period.endingBalance < 0 ? "negative" : "positive"}">${money(period.endingBalance)}</div>
+                          </div>
 
-                      <div class="money-grid">
-                        ${mini("Starting", money(period.startingBalance), period.startingBalance < 0 ? "negative" : "")}
-                        ${mini("Paycheck", money(period.primaryIncome), "positive")}
-                        ${mini("Extra income", money(period.additionalIncome), "positive")}
-                        ${mini("Bills", "-" + money(period.bills), period.bills ? "negative" : "")}
-                        ${mini("Spending", "-" + money(period.categorySpending), period.categorySpending ? "negative" : "")}
-                        ${mini("Net change", money(period.netChange), period.netChange < 0 ? "negative" : "positive")}
-                      </div>
+                          <div class="money-grid">
+                            ${mini("Starting", money(period.startingBalance), period.startingBalance < 0 ? "negative" : "")}
+                            ${mini("Paycheck", money(period.primaryIncome), "positive")}
+                            ${mini("Extra income", money(period.additionalIncome), "positive")}
+                            ${mini("Bills", "-" + money(period.bills), period.bills ? "negative" : "")}
+                            ${mini("Debt", "-" + money(period.debtPayments), period.debtPayments ? "negative" : "")}
+                            ${mini("Spending", "-" + money(period.categorySpending), period.categorySpending ? "negative" : "")}
+                            ${mini("Net change", money(period.netChange), period.netChange < 0 ? "negative" : "positive")}
+                          </div>
 
-                      <details>
-                        <summary>View period details</summary>
-                        <div class="detail-list">
-                          ${detailGroup("Extra income", period.extraDetails, true)}
-                          ${detailGroup("Recurring bills", period.billDetails, false)}
-                          ${detailGroup("Category spending", period.spendingDetails, false)}
-                        </div>
-                      </details>
-                    </article>
-                  `;
+                          <details>
+                            <summary>View period details</summary>
+                            <div class="detail-list">
+                              ${detailGroup("Extra income", period.extraDetails, true)}
+                              ${detailGroup("Recurring bills", period.billDetails, false)}
+                              ${detailGroup("Debt payments", period.debtDetails, false)}
+                              ${detailGroup("Category spending", period.spendingDetails, false)}
+                            </div>
+                          </details>
+                        </article>
+                      `;
         }
 
         function mini(label, value, cls = "") {
@@ -1568,11 +1504,11 @@
         function detailGroup(title, items, positive) {
             if (!items.length) return `<div class="detail-row"><span>${escapeHtml(title)}</span><span class="muted">None</span></div>`;
             return items.map(item => `
-                    <div class="detail-row">
-                      <span>${escapeHtml(title)}: ${escapeHtml(item.name || item.note || "Item")} <small class="muted">(${formatDate(item.date)})</small></span>
-                      <span class="${positive ? "positive" : "negative"}">${positive ? "+" : "-"}${money(item.amount)}</span>
-                    </div>
-                  `).join("");
+                        <div class="detail-row">
+                          <span>${escapeHtml(title)}: ${escapeHtml(item.name || item.note || "Item")} <small class="muted">(${formatDate(item.date)})</small></span>
+                          <span class="${positive ? "positive" : "negative"}">${positive ? "+" : "-"}${money(item.amount)}</span>
+                        </div>
+                      `).join("");
         }
 
         function renderActiveModule() {
@@ -1581,6 +1517,7 @@
             if (id === "primary") renderPrimary();
             if (id === "extra") renderAdditionalIncome();
             if (id === "recurring") renderRecurringPayments();
+            if (id === "debts") renderDebts();
             if (id === "categories") renderCategories();
             if (id === "projection") renderProjection();
         }
@@ -1628,21 +1565,24 @@
             saveState();
         }
 
-        if (!modules.some(m => m.id === state.activeModule)) {
-            state.activeModule = "dashboard";
-            saveState();
-        }
-
-        onAuthStateChanged(auth, user => {
+        onAuthStateChanged(auth, async user => {
             if (user) {
+                currentUser = user;
+                await loadCloudState(user);
+                if (!modules.some(m => m.id === state.activeModule)) {
+                    state.activeModule = "dashboard";
+                    await saveState();
+                }
                 showApp();
                 renderAll();
             } else {
+                currentUser = null;
+                state = clone(defaultState);
                 showLogin();
             }
         });
 
-        runTests();
+            // Tests are available for local development, but are not run in production.
     </script>
 </body>
 </html>

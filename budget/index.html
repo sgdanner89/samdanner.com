@@ -1,1 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>samdanner.com</title>
+    <style>
+        :root {
+            --bg: #10130f;
+            --bg-soft: #171c16;
+            --card: rgba(255, 248, 235, 0.08);
+            --card-strong: rgba(255, 248, 235, 0.13);
+            --text: #f8f1e5;
+            --muted: #b9aa95;
+            --green: #38d996;
+            --amber: #f4b860;
+            --blue: #8fb8ff;
+            --border: rgba(255, 248, 235, 0.14);
+            --shadow: 0 28px 80px rgba(0, 0, 0, 0.36);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--text);
+            background: radial-gradient(circle at top left, rgba(56, 217, 150, 0.16), transparent 32%), radial-gradient(circle at top right, rgba(244, 184, 96, 0.18), transparent 30%), linear-gradient(135deg, #0d100d, #17130f 58%, #0f1512);
+            min-height: 100vh;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .page {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 44px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 64px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            font-size: 1.2rem;
+        }
+
+        .logo-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, var(--green), var(--amber));
+            color: #10130f;
+            box-shadow: 0 14px 34px rgba(56, 217, 150, 0.18);
+            font-family: system-ui, sans-serif;
+            font-weight: 900;
+        }
+
+        nav {
+            display: flex;
+            gap: 10px;
+            color: var(--muted);
+            font-family: system-ui, sans-serif;
+            font-size: 0.92rem;
+        }
+
+            nav a {
+                padding: 9px 12px;
+                border: 1px solid transparent;
+                border-radius: 999px;
+            }
+
+                nav a:hover {
+                    border-color: var(--border);
+                    background: rgba(255, 255, 255, 0.04);
+                    color: var(--text);
+                }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.08fr 0.92fr;
+            gap: 28px;
+            align-items: stretch;
+            margin-bottom: 28px;
+        }
+
+        .hero-card,
+        .side-card,
+        .app-card,
+        .note-card {
+            border: 1px solid var(--border);
+            background: var(--card);
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+        }
+
+        .hero-card {
+            padding: 42px;
+            min-height: 440px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .hero-card::after {
+                content: "";
+                position: absolute;
+                width: 240px;
+                height: 240px;
+                border-radius: 999px;
+                background: rgba(244, 184, 96, 0.14);
+                right: -80px;
+                bottom: -90px;
+                filter: blur(4px);
+            }
+
+        .eyebrow {
+            color: var(--amber);
+            font-family: system-ui, sans-serif;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 0.78rem;
+            letter-spacing: 0.16em;
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(3rem, 8vw, 6.4rem);
+            line-height: 0.86;
+            letter-spacing: -0.08em;
+            max-width: 780px;
+        }
+
+        .hero p {
+            color: var(--muted);
+            font-size: 1.14rem;
+            line-height: 1.6;
+            max-width: 620px;
+            margin: 22px 0 0;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            padding: 13px 18px;
+            font-family: system-ui, sans-serif;
+            font-weight: 850;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+        }
+
+            .btn.primary {
+                background: var(--green);
+                color: #07100b;
+                border-color: transparent;
+            }
+
+        .side-card {
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 18px;
+            background: linear-gradient(160deg, rgba(255,248,235,0.12), rgba(255,248,235,0.05));
+        }
+
+        .workbench {
+            display: grid;
+            gap: 14px;
+            font-family: system-ui, sans-serif;
+        }
+
+        .workbench-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(0,0,0,0.16);
+            border: 1px solid var(--border);
+        }
+
+            .workbench-row span {
+                color: var(--muted);
+                font-size: 0.9rem;
+            }
+
+            .workbench-row strong {
+                color: var(--text);
+            }
+
+        .section-title {
+            margin: 56px 0 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 16px;
+        }
+
+            .section-title h2 {
+                margin: 0;
+                font-size: clamp(2rem, 4vw, 3.2rem);
+                letter-spacing: -0.06em;
+            }
+
+            .section-title p {
+                color: var(--muted);
+                margin: 8px 0 0;
+                font-family: system-ui, sans-serif;
+            }
+
+        .apps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .app-card {
+            padding: 24px;
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 160ms ease, background 160ms ease;
+        }
+
+            .app-card:hover {
+                transform: translateY(-4px);
+                background: var(--card-strong);
+            }
+
+        .app-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            background: rgba(56, 217, 150, 0.14);
+            border: 1px solid rgba(56, 217, 150, 0.22);
+            font-family: system-ui, sans-serif;
+            font-weight: 900;
+            color: var(--green);
+            margin-bottom: 24px;
+        }
+
+        .app-card h3 {
+            margin: 0 0 10px;
+            font-size: 1.45rem;
+            letter-spacing: -0.04em;
+        }
+
+        .app-card p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.55;
+            font-family: system-ui, sans-serif;
+            font-size: 0.98rem;
+        }
+
+        .tag {
+            width: fit-content;
+            color: var(--amber);
+            border: 1px solid rgba(244, 184, 96, 0.26);
+            background: rgba(244, 184, 96, 0.08);
+            border-radius: 999px;
+            padding: 7px 10px;
+            font-family: system-ui, sans-serif;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .notes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .note-card {
+            padding: 28px;
+            box-shadow: none;
+        }
+
+            .note-card h3 {
+                margin: 0 0 10px;
+                font-size: 1.45rem;
+            }
+
+            .note-card p {
+                color: var(--muted);
+                font-family: system-ui, sans-serif;
+                line-height: 1.6;
+                margin: 0;
+            }
+
+        footer {
+            color: var(--muted);
+            font-family: system-ui, sans-serif;
+            text-align: center;
+            margin-top: 52px;
+            font-size: 0.92rem;
+        }
+
+        @media (max-width: 860px) {
+            header,
+            .section-title {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .hero,
+            .apps,
+            .notes {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                flex-wrap: wrap;
+            }
+
+            .hero-card {
+                padding: 30px;
+                min-height: 390px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header>
+            <a class="logo" href="/">
+                <span class="logo-mark">SD</span>
+                <span>samdanner.com</span>
+            </a>
+            <nav>
+                <a href="#apps">Apps</a>
+                <a href="#workbench">Workbench</a>
+                <a href="#notes">Notes</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero" id="workbench">
+                <div class="hero-card">
+                    <div>
+                        <div class="eyebrow">Personal homebase</div>
+                        <h1>Useful little systems, built one at a time.</h1>
+                        <p>
+                            A cozy digital workbench for the tools I build to make money, chores, projects,
+                            learning, and everyday life feel a little more organized.
+                        </p>
+                        <div class="hero-actions">
+                            <a class="btn primary" href="#apps">View apps</a>
+                            <a class="btn" href="budget/index.html">Open budget app</a>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="side-card">
+                    <div>
+                        <div class="eyebrow">On the bench</div>
+                        <div class="workbench">
+                            <div class="workbench-row">
+                                <span>Now live</span>
+                                <strong>Budget Dashboard</strong>
+                            </div>
+                            <div class="workbench-row">
+                                <span>Next idea</span>
+                                <strong>Chore Tracker</strong>
+                            </div>
+                            <div class="workbench-row">
+                                <span>Later</span>
+                                <strong>Personal Wiki</strong>
+                            </div>
+                            <div class="workbench-row">
+                                <span>Rule</span>
+                                <strong>Keep it useful</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <p>
+                        Not a corporate portfolio. Not a shiny fake startup. Just a home for practical tools,
+                        experiments, and things worth keeping.
+                    </p>
+                </aside>
+            </section>
+
+            <section id="apps">
+                <div class="section-title">
+                    <div>
+                        <h2>Apps</h2>
+                        <p>Small tools with a real job to do.</p>
+                    </div>
+                </div>
+
+                <div class="apps">
+                    <a class="app-card" href="budget/index.html">
+                        <div>
+                            <div class="app-icon">$</div>
+                            <h3>Paycheck Budget Dashboard</h3>
+                            <p>Plan money paycheck by paycheck, track bills, debts, spending, and projected cash flow.</p>
+                        </div>
+                        <span class="tag">Open app</span>
+                    </a>
+
+                    <div class="app-card">
+                        <div>
+                            <div class="app-icon">✓</div>
+                            <h3>Chore Tracker</h3>
+                            <p>A future system for keeping the house clean without having to rethink the whole plan every week.</p>
+                        </div>
+                        <span class="tag">Coming soon</span>
+                    </div>
+
+                    <div class="app-card">
+                        <div>
+                            <div class="app-icon">?</div>
+                            <h3>Next Useful Thing</h3>
+                            <p>A holding spot for the next app, experiment, or workflow that earns a permanent place here.</p>
+                        </div>
+                        <span class="tag">Workbench</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="notes">
+                <div class="section-title">
+                    <div>
+                        <h2>Notes from the workbench</h2>
+                        <p>The vibe for this place.</p>
+                    </div>
+                </div>
+
+                <div class="notes">
+                    <div class="note-card">
+                        <h3>Build for real life.</h3>
+                        <p>Every tool here should make something easier, calmer, clearer, or more manageable.</p>
+                    </div>
+                    <div class="note-card">
+                        <h3>Keep it warm.</h3>
+                        <p>Useful software does not have to feel cold. This site should feel like a workshop with the lights on.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            Built at samdanner.com — one useful thing at a time.
+        </footer>
+    </div>
+</body>
+</html>
 

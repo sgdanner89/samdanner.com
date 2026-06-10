@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Today’s Schedule | Chore Tracker</title>
+    <title>Todayâ€™s Schedule | Chore Tracker</title>
 
-    <link rel="stylesheet" href="../Budget/styles.css">
+    <link rel="stylesheet" href="../budget/styles.css">
 
     <style>
         .task-card {
@@ -65,7 +65,7 @@
 
         <header>
             <div class="brand">
-                <h1 id="greeting">Today’s Schedule</h1>
+                <h1 id="greeting">Todayâ€™s Schedule</h1>
                 <p id="subGreeting">Loading your agenda...</p>
             </div>
 
@@ -81,7 +81,7 @@
             <div class="grid summary-grid">
 
                 <div class="card">
-                    <div class="card-label">Today’s Tasks</div>
+                    <div class="card-label">Todayâ€™s Tasks</div>
                     <div class="card-value blue" id="totalTasks">0</div>
                 </div>
 
@@ -255,7 +255,7 @@
         if (todaysTasks.length === 0) {
             scheduleList.innerHTML = `
                 <div class="notice show">
-                    You’re caught up for today. No scheduled chores are due.
+                    Youâ€™re caught up for today. No scheduled chores are due.
                 </div>
             `;
             return;
@@ -374,7 +374,7 @@
 
         const day = getFriendlyDay();
         greeting.textContent = `Hi, Happy ${day}`;
-        subGreeting.textContent = "Here’s what your agenda is looking like today.";
+        subGreeting.textContent = "Hereâ€™s what your agenda is looking like today.";
 
         loadTasks();
         loadCompletions();

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organize Schedule | Chore Tracker</title>
+
+    <link rel="stylesheet" href="../Budget/styles.css">
+
+    <style>
+        .day-section {
+            margin-top: 20px;
+        }
+
+        .task-card {
+            display: grid;
+            gap: 12px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 18px;
+        }
+
+        .task-title {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .task-meta {
+            color: var(--muted);
+            display: grid;
+            gap: 5px;
+        }
+
+        .assign-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+            .assign-row label {
+                min-width: 220px;
+            }
+
+        .message {
+            margin-top: 14px;
+            color: var(--muted);
+        }
+
+        .success {
+            color: var(--green);
+        }
+
+        .error {
+            color: var(--red);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <header>
+            <div class="brand">
+                <h1>Organize Schedule</h1>
+                <p>Assign chores to preferred days so your routine starts to take shape.</p>
+            </div>
+
+            <div class="btn-row">
+                <a class="btn ghost" href="input.html">Add Task</a>
+                <a class="btn ghost" href="tasks.html">Manage Tasks</a>
+                <a class="btn ghost" href="schedule.html">Today</a>
+                <a class="btn ghost" href="index.html">Dashboard</a>
+            </div>
+        </header>
+
+        <section class="panel">
+            <div class="module-title">
+                <div>
+                    <h2>Assign Tasks</h2>
+                    <p>Choose a preferred day for each active task.</p>
+                </div>
+            </div>
+
+            <div id="message" class="message"></div>
+            <div id="taskList" class="list"></div>
+        </section>
+
+        <section class="panel">
+            <div class="module-title">
+                <div>
+                    <h2>Weekly View</h2>
+                    <p>Your tasks grouped by preferred day.</p>
+                </div>
+            </div>
+
+            <div id="weeklyView"></div>
+        </section>
+
+    </div>
+
+    <script type="module">
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+        import {
+            getAuth,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        import {
+            getFirestore,
+            collection,
+            query,
+            where,
+            onSnapshot,
+            doc,
+            updateDoc
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQ2LyVeN-ntb9qrMDlCL1laV1inhJwHLo",
+            authDomain: "chore-tracker-1838a.firebaseapp.com",
+            projectId: "chore-tracker-1838a",
+            storageBucket: "chore-tracker-1838a.firebasestorage.app",
+            messagingSenderId: "708353585360",
+            appId: "1:708353585360:web:3e9f88dfca0ce146e76ed5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const taskList = document.getElementById("taskList");
+        const weeklyView = document.getElementById("weeklyView");
+        const message = document.getElementById("message");
+
+        let currentUser = null;
+        let tasks = [];
+
+        const days = [
+            "Unassigned",
+            "Daily",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+        ];
+
+        function showMessage(text, type = "") {
+            message.textContent = text;
+            message.className = `message ${type}`;
+        }
+
+        function renderTaskAssignments() {
+            taskList.innerHTML = "";
+
+            const activeTasks = tasks.filter(task => task.active !== false);
+
+            if (activeTasks.length === 0) {
+                taskList.innerHTML = `
+                    <div class="notice show">
+                        No active tasks found. Add or reactivate a task first.
+                    </div>
+                `;
+                return;
+            }
+
+            activeTasks.forEach((task) => {
+                const card = document.createElement("div");
+                card.className = "task-card";
+
+                const selectedDay = task.preferredDay || "Unassigned";
+
+                card.innerHTML = `
+                    <div>
+                        <h3 class="task-title">${task.taskName}</h3>
+                        <div class="task-meta">
+                            <span>${task.estimatedMinutes || 0} minutes</span>
+                            <span>${task.recurrenceType || "One Time"} every ${task.recurrenceInterval || 1}</span>
+                            <span>${task.description || "No description added."}</span>
+                        </div>
+                    </div>
+
+                    <div class="assign-row">
+                        <label>
+                            Preferred Day
+                            <select id="day-${task.id}">
+                                ${days.map(day => `
+                                    <option value="${day}" ${selectedDay === day ? "selected" : ""}>
+                                        ${day}
+                                    </option>
+                                `).join("")}
+                            </select>
+                        </label>
+
+                        <button class="btn save-day-btn" data-id="${task.id}">
+                            Save Day
+                        </button>
+                    </div>
+                `;
+
+                taskList.appendChild(card);
+            });
+
+            document.querySelectorAll(".save-day-btn").forEach((button) => {
+                button.addEventListener("click", async () => {
+                    const taskId = button.dataset.id;
+                    const selectedValue = document.getElementById(`day-${taskId}`).value;
+
+                    try {
+                        await updateDoc(doc(db, "tasks", taskId), {
+                            preferredDay: selectedValue
+                        });
+
+                        showMessage("Preferred day saved.", "success");
+
+                    } catch (error) {
+                        showMessage(error.message, "error");
+                    }
+                });
+            });
+        }
+
+        function renderWeeklyView() {
+            weeklyView.innerHTML = "";
+
+            days.forEach((day) => {
+                const dayTasks = tasks.filter((task) => {
+                    const preferredDay = task.preferredDay || "Unassigned";
+                    return preferredDay === day && task.active !== false;
+                });
+
+                const section = document.createElement("div");
+                section.className = "day-section";
+
+                section.innerHTML = `
+                    <h3>${day}</h3>
+                    <div class="list">
+                        ${dayTasks.length === 0
+                        ? `<div class="notice show">No tasks assigned.</div>`
+                        : dayTasks.map(task => `
+                                    <div class="item">
+                                        <div>
+                                            <strong>${task.taskName}</strong>
+                                            <small>
+                                                ${task.estimatedMinutes || 0} minutes ·
+                                                ${task.recurrenceType || "One Time"}
+                                            </small>
+                                        </div>
+                                    </div>
+                                `).join("")
+                    }
+                    </div>
+                `;
+
+                weeklyView.appendChild(section);
+            });
+        }
+
+        function renderPage() {
+            renderTaskAssignments();
+            renderWeeklyView();
+        }
+
+        function loadTasks() {
+            const q = query(
+                collection(db, "tasks"),
+                where("userId", "==", currentUser.uid)
+            );
+
+            onSnapshot(q, (snapshot) => {
+                tasks = snapshot.docs.map((docSnap) => {
+                    return {
+                        id: docSnap.id,
+                        ...docSnap.data()
+                    };
+                });
+
+                renderPage();
+
+            }, (error) => {
+                showMessage(error.message, "error");
+            });
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            currentUser = user;
+            loadTasks();
+        });
+
+    </script>
+
+</body>
+</html>

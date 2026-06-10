@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Task | Chore Tracker</title>
+
+    <link rel="stylesheet" href="../Budget/styles.css">
+
+    <style>
+        .page-actions {
+            margin-top: 18px;
+        }
+
+        .message {
+            margin-top: 14px;
+            color: var(--muted);
+        }
+
+        .success {
+            color: var(--green);
+        }
+
+        .error {
+            color: var(--red);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <header>
+            <div class="brand">
+                <h1>Add Task</h1>
+                <p>Create chores, routines, and recurring tasks for your schedule.</p>
+            </div>
+
+            <a class="btn ghost" href="index.html">Dashboard</a>
+        </header>
+
+        <section class="panel">
+
+            <div class="module-title">
+                <div>
+                    <h2>Task Details</h2>
+                    <p>Start by collecting the chore information. We’ll organize it later.</p>
+                </div>
+            </div>
+
+            <form id="taskForm">
+
+                <label>
+                    Task Name
+                    <input type="text" id="taskName" placeholder="Dishes" required>
+                </label>
+
+                <label>
+                    Estimated Minutes
+                    <input type="number" id="estimatedMinutes" placeholder="10" min="1" required>
+                </label>
+
+                <label class="full">
+                    Description / Steps
+                    <textarea id="description" placeholder="Gather dishes, unload dishwasher, reload dishwasher..."></textarea>
+                </label>
+
+                <label>
+                    Recurrence Type
+                    <select id="recurrenceType">
+                        <option value="One Time">One Time</option>
+                        <option value="Daily">Daily</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Every X Days">Every X Days</option>
+                        <option value="Every X Weeks">Every X Weeks</option>
+                        <option value="Every X Months">Every X Months</option>
+                    </select>
+                </label>
+
+                <label>
+                    Recurrence Interval
+                    <input type="number" id="recurrenceInterval" value="1" min="1">
+                </label>
+
+                <label>
+                    Start Date
+                    <input type="date" id="startDate" required>
+                </label>
+
+                <label>
+                    Active
+                    <select id="active">
+                        <option value="true" selected>Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </label>
+
+                <div class="full btn-row page-actions">
+                    <button class="btn" type="submit">Save Task</button>
+                    <button class="btn ghost" type="reset">Clear Form</button>
+                </div>
+
+            </form>
+
+            <div id="message" class="message"></div>
+
+        </section>
+
+    </div>
+
+    <script type="module">
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+        import {
+            getAuth,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        import {
+            getFirestore,
+            collection,
+            addDoc,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQ2LyVeN-ntb9qrMDlCL1laV1inhJwHLo",
+            authDomain: "chore-tracker-1838a.firebaseapp.com",
+            projectId: "chore-tracker-1838a",
+            storageBucket: "chore-tracker-1838a.firebasestorage.app",
+            messagingSenderId: "708353585360",
+            appId: "1:708353585360:web:3e9f88dfca0ce146e76ed5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const taskForm = document.getElementById("taskForm");
+        const message = document.getElementById("message");
+        const startDate = document.getElementById("startDate");
+
+        let currentUser = null;
+
+        startDate.valueAsDate = new Date();
+
+        function showMessage(text, type = "") {
+            message.textContent = text;
+            message.className = `message ${type}`;
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            currentUser = user;
+        });
+
+        taskForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            if (!currentUser) {
+                showMessage("You must be logged in to save tasks.", "error");
+                return;
+            }
+
+            const taskData = {
+                userId: currentUser.uid,
+                taskName: document.getElementById("taskName").value.trim(),
+                description: document.getElementById("description").value.trim(),
+                estimatedMinutes: Number(document.getElementById("estimatedMinutes").value),
+                recurrenceType: document.getElementById("recurrenceType").value,
+                recurrenceInterval: Number(document.getElementById("recurrenceInterval").value),
+                startDate: document.getElementById("startDate").value,
+                active: document.getElementById("active").value === "true",
+                createdAt: serverTimestamp()
+            };
+
+            try {
+                await addDoc(collection(db, "tasks"), taskData);
+
+                showMessage("Task saved successfully.", "success");
+                taskForm.reset();
+                startDate.valueAsDate = new Date();
+
+            } catch (error) {
+                showMessage(error.message, "error");
+            }
+        });
+
+    </script>
+
+</body>
+</html>

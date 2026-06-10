@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Tasks | Chore Tracker</title>
+
+    <link rel="stylesheet" href="../Budget/styles.css">
+
+    <style>
+        .task-toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+            .task-toolbar input,
+            .task-toolbar select {
+                max-width: 260px;
+            }
+
+        .task-card {
+            display: grid;
+            gap: 12px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 18px;
+        }
+
+        .task-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .task-title {
+            margin: 0;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .task-meta {
+            color: var(--muted);
+            display: grid;
+            gap: 5px;
+            line-height: 1.45;
+        }
+
+        .status-pill {
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 7px 10px;
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+
+        .status-active {
+            color: var(--green);
+            background: rgba(46, 229, 157, 0.1);
+        }
+
+        .status-inactive {
+            color: var(--red);
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .edit-form {
+            display: none;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+            .edit-form.show {
+                display: grid;
+            }
+
+        .message {
+            margin-top: 14px;
+            color: var(--muted);
+        }
+
+        .success {
+            color: var(--green);
+        }
+
+        .error {
+            color: var(--red);
+        }
+
+        @media (max-width: 720px) {
+            .task-head {
+                display: grid;
+            }
+
+            .edit-form {
+                grid-template-columns: 1fr;
+            }
+
+            .task-toolbar input,
+            .task-toolbar select {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <header>
+            <div class="brand">
+                <h1>Manage Tasks</h1>
+                <p>View, edit, pause, reactivate, or delete your saved chores.</p>
+            </div>
+
+            <div class="btn-row">
+                <a class="btn ghost" href="input.html">Add Task</a>
+                <a class="btn ghost" href="index.html">Dashboard</a>
+            </div>
+        </header>
+
+        <section class="panel">
+
+            <div class="module-title">
+                <div>
+                    <h2>Saved Tasks</h2>
+                    <p>These are the chores currently saved to your account.</p>
+                </div>
+            </div>
+
+            <div class="task-toolbar">
+                <input type="text" id="searchInput" placeholder="Search tasks...">
+
+                <select id="statusFilter">
+                    <option value="all">All Tasks</option>
+                    <option value="active">Active Only</option>
+                    <option value="inactive">Inactive Only</option>
+                </select>
+            </div>
+
+            <div id="message" class="message"></div>
+
+            <div id="taskList" class="list"></div>
+
+        </section>
+
+    </div>
+
+    <script type="module">
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+    import {
+        getAuth,
+        onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        getDocs,
+        doc,
+        updateDoc,
+        deleteDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAQ2LyVeN-ntb9qrMDlCL1laV1inhJwHLo",
+        authDomain: "chore-tracker-1838a.firebaseapp.com",
+        projectId: "chore-tracker-1838a",
+        storageBucket: "chore-tracker-1838a.firebasestorage.app",
+        messagingSenderId: "708353585360",
+        appId: "1:708353585360:web:3e9f88dfca0ce146e76ed5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const taskList = document.getElementById("taskList");
+    const message = document.getElementById("message");
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+
+    let currentUser = null;
+    let tasks = [];
+
+    function showMessage(text, type = "") {
+        message.textContent = text;
+        message.className = `message ${type}`;
+    }
+
+    function formatTaskStatus(active) {
+        return active ? "Active" : "Inactive";
+    }
+
+    function getFilteredTasks() {
+        const searchText = searchInput.value.toLowerCase().trim();
+        const statusValue = statusFilter.value;
+
+        return tasks.filter((task) => {
+            const matchesSearch =
+                task.taskName.toLowerCase().includes(searchText) ||
+                (task.description || "").toLowerCase().includes(searchText);
+
+            const matchesStatus =
+                statusValue === "all" ||
+                (statusValue === "active" && task.active) ||
+                (statusValue === "inactive" && !task.active);
+
+            return matchesSearch && matchesStatus;
+        });
+    }
+
+    function renderTasks() {
+        const filteredTasks = getFilteredTasks();
+
+        taskList.innerHTML = "";
+
+        if (filteredTasks.length === 0) {
+            taskList.innerHTML = `
+                <div class="notice show">
+                    No tasks found. Add a task to start building your schedule.
+                </div>
+            `;
+            return;
+        }
+
+        filteredTasks.forEach((task) => {
+            const card = document.createElement("div");
+            card.className = "task-card";
+
+            card.innerHTML = `
+                <div class="task-head">
+                    <div>
+                        <h3 class="task-title">${task.taskName}</h3>
+                        <div class="task-meta">
+                            <span>${task.estimatedMinutes} minutes</span>
+                            <span>${task.recurrenceType} every ${task.recurrenceInterval}</span>
+                            <span>Starts: ${task.startDate || "No start date"}</span>
+                            <span>${task.description || "No description added."}</span>
+                        </div>
+                    </div>
+
+                    <span class="status-pill ${task.active ? "status-active" : "status-inactive"}">
+                        ${formatTaskStatus(task.active)}
+                    </span>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn secondary edit-btn" data-id="${task.id}">Edit</button>
+                    <button class="btn ghost toggle-btn" data-id="${task.id}">
+                        ${task.active ? "Pause" : "Reactivate"}
+                    </button>
+                    <button class="btn danger delete-btn" data-id="${task.id}">Delete</button>
+                </div>
+
+                <form class="edit-form" id="edit-${task.id}">
+                    <label>
+                        Task Name
+                        <input type="text" id="name-${task.id}" value="${task.taskName}" required>
+                    </label>
+
+                    <label>
+                        Estimated Minutes
+                        <input type="number" id="minutes-${task.id}" value="${task.estimatedMinutes}" min="1" required>
+                    </label>
+
+                    <label class="full">
+                        Description / Steps
+                        <textarea id="description-${task.id}">${task.description || ""}</textarea>
+                    </label>
+
+                    <label>
+                        Recurrence Type
+                        <select id="recurrence-${task.id}">
+                            <option value="One Time" ${task.recurrenceType === "One Time" ? "selected" : ""}>One Time</option>
+                            <option value="Daily" ${task.recurrenceType === "Daily" ? "selected" : ""}>Daily</option>
+                            <option value="Weekly" ${task.recurrenceType === "Weekly" ? "selected" : ""}>Weekly</option>
+                            <option value="Every X Days" ${task.recurrenceType === "Every X Days" ? "selected" : ""}>Every X Days</option>
+                            <option value="Every X Weeks" ${task.recurrenceType === "Every X Weeks" ? "selected" : ""}>Every X Weeks</option>
+                            <option value="Every X Months" ${task.recurrenceType === "Every X Months" ? "selected" : ""}>Every X Months</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Recurrence Interval
+                        <input type="number" id="interval-${task.id}" value="${task.recurrenceInterval}" min="1">
+                    </label>
+
+                    <label>
+                        Start Date
+                        <input type="date" id="start-${task.id}" value="${task.startDate || ""}" required>
+                    </label>
+
+                    <label>
+                        Active
+                        <select id="active-${task.id}">
+                            <option value="true" ${task.active ? "selected" : ""}>Active</option>
+                            <option value="false" ${!task.active ? "selected" : ""}>Inactive</option>
+                        </select>
+                    </label>
+
+                    <div class="full btn-row">
+                        <button class="btn save-btn" type="button" data-id="${task.id}">Save Changes</button>
+                        <button class="btn ghost cancel-btn" type="button" data-id="${task.id}">Cancel</button>
+                    </div>
+                </form>
+            `;
+
+            taskList.appendChild(card);
+        });
+
+        attachTaskButtons();
+    }
+
+    function attachTaskButtons() {
+        document.querySelectorAll(".edit-btn").forEach((button) => {
+            button.addEventListener("click", () => {
+                const taskId = button.dataset.id;
+                document.getElementById(`edit-${taskId}`).classList.add("show");
+            });
+        });
+
+        document.querySelectorAll(".cancel-btn").forEach((button) => {
+            button.addEventListener("click", () => {
+                const taskId = button.dataset.id;
+                document.getElementById(`edit-${taskId}`).classList.remove("show");
+            });
+        });
+
+        document.querySelectorAll(".toggle-btn").forEach((button) => {
+            button.addEventListener("click", async () => {
+                const taskId = button.dataset.id;
+                const task = tasks.find((item) => item.id === taskId);
+
+                if (!task) return;
+
+                await updateTask(taskId, {
+                    active: !task.active
+                });
+
+                showMessage("Task status updated.", "success");
+            });
+        });
+
+        document.querySelectorAll(".delete-btn").forEach((button) => {
+            button.addEventListener("click", async () => {
+                const taskId = button.dataset.id;
+                const task = tasks.find((item) => item.id === taskId);
+
+                if (!task) return;
+
+                const confirmDelete = confirm(`Delete "${task.taskName}"?`);
+
+                if (!confirmDelete) return;
+
+                try {
+                    await deleteDoc(doc(db, "tasks", taskId));
+                    tasks = tasks.filter((item) => item.id !== taskId);
+                    renderTasks();
+                    showMessage("Task deleted.", "success");
+                } catch (error) {
+                    showMessage(error.message, "error");
+                }
+            });
+        });
+
+        document.querySelectorAll(".save-btn").forEach((button) => {
+            button.addEventListener("click", async () => {
+                const taskId = button.dataset.id;
+
+                const updatedTask = {
+                    taskName: document.getElementById(`name-${taskId}`).value.trim(),
+                    estimatedMinutes: Number(document.getElementById(`minutes-${taskId}`).value),
+                    description: document.getElementById(`description-${taskId}`).value.trim(),
+                    recurrenceType: document.getElementById(`recurrence-${taskId}`).value,
+                    recurrenceInterval: Number(document.getElementById(`interval-${taskId}`).value),
+                    startDate: document.getElementById(`start-${taskId}`).value,
+                    active: document.getElementById(`active-${taskId}`).value === "true"
+                };
+
+                if (!updatedTask.taskName || !updatedTask.estimatedMinutes || !updatedTask.startDate) {
+                    showMessage("Task name, estimated minutes, and start date are required.", "error");
+                    return;
+                }
+
+                await updateTask(taskId, updatedTask);
+                showMessage("Task updated.", "success");
+            });
+        });
+    }
+
+    async function updateTask(taskId, updates) {
+        try {
+            await updateDoc(doc(db, "tasks", taskId), updates);
+
+            tasks = tasks.map((task) => {
+                if (task.id === taskId) {
+                    return {
+                        ...task,
+                        ...updates
+                    };
+                }
+
+                return task;
+            });
+
+            renderTasks();
+
+        } catch (error) {
+            showMessage(error.message, "error");
+        }
+    }
+
+    async function loadTasks() {
+        if (!currentUser) return;
+
+        showMessage("Loading tasks...");
+
+        const q = query(
+            collection(db, "tasks"),
+            where("userId", "==", currentUser.uid)
+        );
+
+        try {
+            const querySnapshot = await getDocs(q);
+
+            tasks = querySnapshot.docs.map((docSnap) => {
+                return {
+                    id: docSnap.id,
+                    ...docSnap.data()
+                };
+            });
+
+            showMessage("");
+            renderTasks();
+
+        } catch (error) {
+            showMessage(error.message, "error");
+        }
+    }
+
+    searchInput.addEventListener("input", renderTasks);
+    statusFilter.addEventListener("change", renderTasks);
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        currentUser = user;
+        await loadTasks();
+    });
+
+    </script>
+
+</body>
+</html>

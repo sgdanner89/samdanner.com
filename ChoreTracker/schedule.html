@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Today’s Schedule | Chore Tracker</title>
+
+    <link rel="stylesheet" href="../Budget/styles.css">
+
+    <style>
+        .task-card {
+            display: grid;
+            gap: 12px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 18px;
+        }
+
+        .task-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .task-title {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .task-meta {
+            color: var(--muted);
+            display: grid;
+            gap: 5px;
+            line-height: 1.45;
+        }
+
+        .completed {
+            opacity: 0.55;
+        }
+
+            .completed .task-title {
+                text-decoration: line-through;
+            }
+
+        .message {
+            margin-top: 14px;
+            color: var(--muted);
+        }
+
+        .success {
+            color: var(--green);
+        }
+
+        .error {
+            color: var(--red);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <header>
+            <div class="brand">
+                <h1 id="greeting">Today’s Schedule</h1>
+                <p id="subGreeting">Loading your agenda...</p>
+            </div>
+
+            <div class="btn-row">
+                <a class="btn ghost" href="input.html">Add Task</a>
+                <a class="btn ghost" href="tasks.html">Manage Tasks</a>
+                <a class="btn ghost" href="index.html">Dashboard</a>
+            </div>
+        </header>
+
+        <section class="panel">
+
+            <div class="grid summary-grid">
+
+                <div class="card">
+                    <div class="card-label">Today’s Tasks</div>
+                    <div class="card-value blue" id="totalTasks">0</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Completed</div>
+                    <div class="card-value positive" id="completedTasks">0</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Estimated Time</div>
+                    <div class="card-value yellow" id="estimatedTime">0 min</div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="panel">
+
+            <div class="module-title">
+                <div>
+                    <h2>Agenda</h2>
+                    <p>Mark items complete as you work through the day.</p>
+                </div>
+            </div>
+
+            <div id="message" class="message"></div>
+            <div id="scheduleList" class="list"></div>
+
+        </section>
+
+    </div>
+
+    <script type="module">
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+    import {
+        getAuth,
+        onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        onSnapshot,
+        doc,
+        setDoc,
+        serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAQ2LyVeN-ntb9qrMDlCL1laV1inhJwHLo",
+        authDomain: "chore-tracker-1838a.firebaseapp.com",
+        projectId: "chore-tracker-1838a",
+        storageBucket: "chore-tracker-1838a.firebasestorage.app",
+        messagingSenderId: "708353585360",
+        appId: "1:708353585360:web:3e9f88dfca0ce146e76ed5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const greeting = document.getElementById("greeting");
+    const subGreeting = document.getElementById("subGreeting");
+    const scheduleList = document.getElementById("scheduleList");
+    const message = document.getElementById("message");
+    const totalTasks = document.getElementById("totalTasks");
+    const completedTasks = document.getElementById("completedTasks");
+    const estimatedTime = document.getElementById("estimatedTime");
+
+    let currentUser = null;
+    let allTasks = [];
+    let completions = [];
+
+    function getTodayString() {
+        return new Date().toISOString().split("T")[0];
+    }
+
+    function getFriendlyDay() {
+        return new Date().toLocaleDateString("en-US", {
+            weekday: "long"
+        });
+    }
+
+    function showMessage(text, type = "") {
+        message.textContent = text;
+        message.className = `message ${type}`;
+    }
+
+    function dateDiffInDays(startDate, endDate) {
+        const start = new Date(startDate + "T00:00:00");
+        const end = new Date(endDate + "T00:00:00");
+        const diff = end - start;
+        return Math.floor(diff / 86400000);
+    }
+
+    function shouldShowTaskToday(task) {
+        if (!task.active) return false;
+        if (!task.startDate) return false;
+
+        const today = getTodayString();
+        const daysSinceStart = dateDiffInDays(task.startDate, today);
+
+        if (daysSinceStart < 0) return false;
+
+        const interval = Number(task.recurrenceInterval || 1);
+
+        if (task.recurrenceType === "One Time") {
+            return task.startDate === today;
+        }
+
+        if (task.recurrenceType === "Daily") {
+            return true;
+        }
+
+        if (task.recurrenceType === "Weekly") {
+            return daysSinceStart % 7 === 0;
+        }
+
+        if (task.recurrenceType === "Every X Days") {
+            return daysSinceStart % interval === 0;
+        }
+
+        if (task.recurrenceType === "Every X Weeks") {
+            return daysSinceStart % (interval * 7) === 0;
+        }
+
+        if (task.recurrenceType === "Every X Months") {
+            const start = new Date(task.startDate + "T00:00:00");
+            const todayDate = new Date(today + "T00:00:00");
+
+            const monthDiff =
+                (todayDate.getFullYear() - start.getFullYear()) * 12 +
+                (todayDate.getMonth() - start.getMonth());
+
+            return todayDate.getDate() === start.getDate() && monthDiff % interval === 0;
+        }
+
+        return false;
+    }
+
+    function isTaskCompleted(taskId) {
+        const today = getTodayString();
+
+        return completions.some((item) => {
+            return item.taskId === taskId && item.completedDate === today;
+        });
+    }
+
+    function getTodaysTasks() {
+        return allTasks.filter(shouldShowTaskToday);
+    }
+
+    function renderSchedule() {
+        const todaysTasks = getTodaysTasks();
+        const completedCount = todaysTasks.filter((task) => isTaskCompleted(task.id)).length;
+        const totalMinutes = todaysTasks.reduce((sum, task) => {
+            return sum + Number(task.estimatedMinutes || 0);
+        }, 0);
+
+        totalTasks.textContent = todaysTasks.length;
+        completedTasks.textContent = completedCount;
+        estimatedTime.textContent = `${totalMinutes} min`;
+
+        scheduleList.innerHTML = "";
+
+        if (todaysTasks.length === 0) {
+            scheduleList.innerHTML = `
+                <div class="notice show">
+                    You’re caught up for today. No scheduled chores are due.
+                </div>
+            `;
+            return;
+        }
+
+        todaysTasks.forEach((task) => {
+            const completed = isTaskCompleted(task.id);
+
+            const card = document.createElement("div");
+            card.className = `task-card ${completed ? "completed" : ""}`;
+
+            card.innerHTML = `
+                <div class="task-head">
+                    <div>
+                        <h3 class="task-title">${task.taskName}</h3>
+                        <div class="task-meta">
+                            <span>${task.estimatedMinutes} minutes</span>
+                            <span>${task.recurrenceType} every ${task.recurrenceInterval}</span>
+                            <span>${task.description || "No description added."}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn ${completed ? "ghost" : ""}" data-id="${task.id}">
+                        ${completed ? "Completed" : "Mark Complete"}
+                    </button>
+                </div>
+            `;
+
+            const completeBtn = card.querySelector("button");
+
+            completeBtn.addEventListener("click", async () => {
+                if (completed) return;
+
+                await markTaskComplete(task.id);
+            });
+
+            scheduleList.appendChild(card);
+        });
+    }
+
+    async function markTaskComplete(taskId) {
+        if (!currentUser) return;
+
+        const today = getTodayString();
+        const completionId = `${currentUser.uid}_${taskId}_${today}`;
+
+        try {
+            await setDoc(doc(db, "taskCompletions", completionId), {
+                userId: currentUser.uid,
+                taskId: taskId,
+                completedDate: today,
+                completedAt: serverTimestamp()
+            });
+
+            showMessage("Task marked complete.", "success");
+
+        } catch (error) {
+            showMessage(error.message, "error");
+        }
+    }
+
+    function loadTasks() {
+        const q = query(
+            collection(db, "tasks"),
+            where("userId", "==", currentUser.uid)
+        );
+
+        onSnapshot(q, (snapshot) => {
+            allTasks = snapshot.docs.map((docSnap) => {
+                return {
+                    id: docSnap.id,
+                    ...docSnap.data()
+                };
+            });
+
+            renderSchedule();
+
+        }, (error) => {
+            showMessage(error.message, "error");
+        });
+    }
+
+    function loadCompletions() {
+        const today = getTodayString();
+
+        const q = query(
+            collection(db, "taskCompletions"),
+            where("userId", "==", currentUser.uid),
+            where("completedDate", "==", today)
+        );
+
+        onSnapshot(q, (snapshot) => {
+            completions = snapshot.docs.map((docSnap) => {
+                return {
+                    id: docSnap.id,
+                    ...docSnap.data()
+                };
+            });
+
+            renderSchedule();
+
+        }, (error) => {
+            showMessage(error.message, "error");
+        });
+    }
+
+    onAuthStateChanged(auth, (user) => {
+        if (!user) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        currentUser = user;
+
+        const day = getFriendlyDay();
+        greeting.textContent = `Hi, Happy ${day}`;
+        subGreeting.textContent = "Here’s what your agenda is looking like today.";
+
+        loadTasks();
+        loadCompletions();
+    });
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chore Tracker Dashboard</title>
+
+    <link rel="stylesheet" href="../Budget/styles.css">
+
+    <style>
+        .quick-card {
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <header>
+            <div class="brand">
+                <h1 id="greeting">Hi there</h1>
+                <p id="subGreeting">Welcome back to your Chore Tracker.</p>
+            </div>
+
+            <button class="btn ghost" id="logoutBtn">Log Out</button>
+        </header>
+
+        <section class="panel">
+
+            <div class="module-title">
+                <div>
+                    <h2>Dashboard</h2>
+                    <p>What would you like to work on today?</p>
+                </div>
+            </div>
+
+            <div class="grid summary-grid">
+
+                <div class="card">
+                    <div class="card-label">Today</div>
+                    <div class="card-value blue" id="todayName">Loading...</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Scheduled Tasks</div>
+                    <div class="card-value positive" id="scheduledTasks">0</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Estimated Time</div>
+                    <div class="card-value yellow" id="estimatedTime">0 min</div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="panel">
+
+            <div class="module-title">
+                <div>
+                    <h2>App Pages</h2>
+                    <p>Each feature has its own page so we can build this one piece at a time.</p>
+                </div>
+            </div>
+
+            <div class="grid quick-links">
+
+                <a class="quick-card" href="schedule.html">
+                    <strong>View Today</strong>
+                    <span>See today's chore agenda.</span>
+                </a>
+
+                <a class="quick-card" href="input.html">
+                    <strong>Add Task</strong>
+                    <span>Create a new chore or routine.</span>
+                </a>
+
+                <a class="quick-card" href="tasks.html">
+                    <strong>Manage Tasks</strong>
+                    <span>Edit, delete, pause, or reactivate chores.</span>
+                </a>
+
+                <a class="quick-card" href="organize.html">
+                    <strong>Organize Schedule</strong>
+                    <span>Assign tasks to days or calendar slots.</span>
+                </a>
+
+                <a class="quick-card" href="login.html">
+                    <strong>Login Page</strong>
+                    <span>Return to authentication screen.</span>
+                </a>
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <script type="module">
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+        import {
+            getAuth,
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        import {
+            getFirestore,
+            doc,
+            getDoc,
+            collection,
+            query,
+            where,
+            onSnapshot
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQ2LyVeN-ntb9qrMDlCL1laV1inhJwHLo",
+            authDomain: "chore-tracker-1838a.firebaseapp.com",
+            projectId: "chore-tracker-1838a",
+            storageBucket: "chore-tracker-1838a.firebasestorage.app",
+            messagingSenderId: "708353585360",
+            appId: "1:708353585360:web:3e9f88dfca0ce146e76ed5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const greeting = document.getElementById("greeting");
+        const subGreeting = document.getElementById("subGreeting");
+        const todayName = document.getElementById("todayName");
+        const scheduledTasks = document.getElementById("scheduledTasks");
+        const estimatedTime = document.getElementById("estimatedTime");
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        function getTodayString() {
+            return new Date().toISOString().split("T")[0];
+        }
+
+        function getFriendlyDay() {
+            return new Date().toLocaleDateString("en-US", {
+                weekday: "long"
+            });
+        }
+
+        function dateDiffInDays(startDate, endDate) {
+            const start = new Date(startDate + "T00:00:00");
+            const end = new Date(endDate + "T00:00:00");
+            return Math.floor((end - start) / 86400000);
+        }
+
+        function shouldShowTaskToday(task) {
+            if (!task.active) return false;
+            if (!task.startDate) return false;
+
+            const today = getTodayString();
+            const daysSinceStart = dateDiffInDays(task.startDate, today);
+
+            if (daysSinceStart < 0) return false;
+
+            const interval = Number(task.recurrenceInterval || 1);
+
+            if (task.recurrenceType === "One Time") {
+                return task.startDate === today;
+            }
+
+            if (task.recurrenceType === "Daily") {
+                return true;
+            }
+
+            if (task.recurrenceType === "Weekly") {
+                return daysSinceStart % 7 === 0;
+            }
+
+            if (task.recurrenceType === "Every X Days") {
+                return daysSinceStart % interval === 0;
+            }
+
+            if (task.recurrenceType === "Every X Weeks") {
+                return daysSinceStart % (interval * 7) === 0;
+            }
+
+            if (task.recurrenceType === "Every X Months") {
+                const start = new Date(task.startDate + "T00:00:00");
+                const todayDate = new Date(today + "T00:00:00");
+
+                const monthDiff =
+                    (todayDate.getFullYear() - start.getFullYear()) * 12 +
+                    (todayDate.getMonth() - start.getMonth());
+
+                return todayDate.getDate() === start.getDate() && monthDiff % interval === 0;
+            }
+
+            return false;
+        }
+
+        function setToday() {
+            const day = getFriendlyDay();
+
+            todayName.textContent = day;
+            subGreeting.textContent = `Happy ${day}. Here's your home base for today.`;
+        }
+
+        async function loadUserProfile(user) {
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                greeting.textContent = `Hi, ${userData.displayName}`;
+            } else {
+                greeting.textContent = `Hi, ${user.email}`;
+            }
+        }
+
+        function loadDashboardTasks(user) {
+            const q = query(
+                collection(db, "tasks"),
+                where("userId", "==", user.uid)
+            );
+
+            onSnapshot(q, (snapshot) => {
+                const tasks = snapshot.docs.map((docSnap) => {
+                    return {
+                        id: docSnap.id,
+                        ...docSnap.data()
+                    };
+                });
+
+                const todaysTasks = tasks.filter(shouldShowTaskToday);
+
+                const totalMinutes = todaysTasks.reduce((sum, task) => {
+                    return sum + Number(task.estimatedMinutes || 0);
+                }, 0);
+
+                scheduledTasks.textContent = todaysTasks.length;
+                estimatedTime.textContent = `${totalMinutes} min`;
+
+            }, (error) => {
+                console.error(error);
+                scheduledTasks.textContent = "Error";
+                estimatedTime.textContent = "Error";
+            });
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            setToday();
+            await loadUserProfile(user);
+            loadDashboardTasks(user);
+        });
+
+        logoutBtn.addEventListener("click", async () => {
+            await signOut(auth);
+            window.location.href = "login.html";
+        });
+
+    </script>
+
+</body>
+</html>

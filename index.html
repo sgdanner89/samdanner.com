@@ -80,17 +80,17 @@
             font-size: 0.92rem;
         }
 
-            nav a {
-                padding: 9px 12px;
-                border: 1px solid transparent;
-                border-radius: 999px;
-            }
+        nav a {
+            padding: 9px 12px;
+            border: 1px solid transparent;
+            border-radius: 999px;
+        }
 
-                nav a:hover {
-                    border-color: var(--border);
-                    background: rgba(255, 255, 255, 0.04);
-                    color: var(--text);
-                }
+        nav a:hover {
+            border-color: var(--border);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+        }
 
         .hero {
             display: grid;
@@ -121,17 +121,17 @@
             overflow: hidden;
         }
 
-            .hero-card::after {
-                content: "";
-                position: absolute;
-                width: 240px;
-                height: 240px;
-                border-radius: 999px;
-                background: rgba(244, 184, 96, 0.14);
-                right: -80px;
-                bottom: -90px;
-                filter: blur(4px);
-            }
+        .hero-card::after {
+            content: "";
+            position: absolute;
+            width: 240px;
+            height: 240px;
+            border-radius: 999px;
+            background: rgba(244, 184, 96, 0.14);
+            right: -80px;
+            bottom: -90px;
+            filter: blur(4px);
+        }
 
         .eyebrow {
             color: var(--amber);
@@ -181,11 +181,11 @@
             color: var(--text);
         }
 
-            .btn.primary {
-                background: var(--green);
-                color: #07100b;
-                border-color: transparent;
-            }
+        .btn.primary {
+            background: var(--green);
+            color: #07100b;
+            border-color: transparent;
+        }
 
         .side-card {
             padding: 28px;
@@ -212,14 +212,14 @@
             border: 1px solid var(--border);
         }
 
-            .workbench-row span {
-                color: var(--muted);
-                font-size: 0.9rem;
-            }
+        .workbench-row span {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
 
-            .workbench-row strong {
-                color: var(--text);
-            }
+        .workbench-row strong {
+            color: var(--text);
+        }
 
         .section-title {
             margin: 56px 0 18px;
@@ -229,17 +229,17 @@
             gap: 16px;
         }
 
-            .section-title h2 {
-                margin: 0;
-                font-size: clamp(2rem, 4vw, 3.2rem);
-                letter-spacing: -0.06em;
-            }
+        .section-title h2 {
+            margin: 0;
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            letter-spacing: -0.06em;
+        }
 
-            .section-title p {
-                color: var(--muted);
-                margin: 8px 0 0;
-                font-family: system-ui, sans-serif;
-            }
+        .section-title p {
+            color: var(--muted);
+            margin: 8px 0 0;
+            font-family: system-ui, sans-serif;
+        }
 
         .apps {
             display: grid;
@@ -256,10 +256,10 @@
             transition: transform 160ms ease, background 160ms ease;
         }
 
-            .app-card:hover {
-                transform: translateY(-4px);
-                background: var(--card-strong);
-            }
+        .app-card:hover {
+            transform: translateY(-4px);
+            background: var(--card-strong);
+        }
 
         .app-icon {
             width: 52px;
@@ -312,17 +312,17 @@
             box-shadow: none;
         }
 
-            .note-card h3 {
-                margin: 0 0 10px;
-                font-size: 1.45rem;
-            }
+        .note-card h3 {
+            margin: 0 0 10px;
+            font-size: 1.45rem;
+        }
 
-            .note-card p {
-                color: var(--muted);
-                font-family: system-ui, sans-serif;
-                line-height: 1.6;
-                margin: 0;
-            }
+        .note-card p {
+            color: var(--muted);
+            font-family: system-ui, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+        }
 
         footer {
             color: var(--muted);
@@ -356,6 +356,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="page">
         <header>
@@ -363,6 +364,7 @@
                 <span class="logo-mark">SD</span>
                 <span>samdanner.com</span>
             </a>
+
             <nav>
                 <a href="#apps">Apps</a>
                 <a href="#workbench">Workbench</a>
@@ -375,14 +377,18 @@
                 <div class="hero-card">
                     <div>
                         <div class="eyebrow">Personal homebase</div>
+
                         <h1>Useful little systems, built one at a time.</h1>
+
                         <p>
                             A cozy digital workbench for the tools I build to make money, chores, projects,
                             learning, and everyday life feel a little more organized.
                         </p>
+
                         <div class="hero-actions">
                             <a class="btn primary" href="#apps">View apps</a>
                             <a class="btn" href="budget/index.html">Open budget app</a>
+                            <a class="btn" href="ChoreTracker/login.html">Open chore tracker</a>
                         </div>
                     </div>
                 </div>
@@ -390,25 +396,30 @@
                 <aside class="side-card">
                     <div>
                         <div class="eyebrow">On the bench</div>
+
                         <div class="workbench">
                             <div class="workbench-row">
                                 <span>Now live</span>
                                 <strong>Budget Dashboard</strong>
                             </div>
+
                             <div class="workbench-row">
-                                <span>Next idea</span>
+                                <span>Now live</span>
                                 <strong>Chore Tracker</strong>
                             </div>
+
                             <div class="workbench-row">
                                 <span>Later</span>
                                 <strong>Personal Wiki</strong>
                             </div>
+
                             <div class="workbench-row">
                                 <span>Rule</span>
                                 <strong>Keep it useful</strong>
                             </div>
                         </div>
                     </div>
+
                     <p>
                         Not a corporate portfolio. Not a shiny fake startup. Just a home for practical tools,
                         experiments, and things worth keeping.
@@ -429,26 +440,38 @@
                         <div>
                             <div class="app-icon">$</div>
                             <h3>Paycheck Budget Dashboard</h3>
-                            <p>Plan money paycheck by paycheck, track bills, debts, spending, and projected cash flow.</p>
+                            <p>
+                                Plan money paycheck by paycheck, track bills, debts,
+                                spending, and projected cash flow.
+                            </p>
                         </div>
+
+                        <span class="tag">Open app</span>
+                    </a>
+
+                    <a class="app-card" href="ChoreTracker/login.html">
+                        <div>
+                            <div class="app-icon">✓</div>
+                            <h3>Chore Tracker</h3>
+                            <p>
+                                Build recurring chores, create schedules, track completions,
+                                and keep the house running without having to remember everything.
+                            </p>
+                        </div>
+
                         <span class="tag">Open app</span>
                     </a>
 
                     <div class="app-card">
                         <div>
-                            <div class="app-icon">✓</div>
-                            <h3>Chore Tracker</h3>
-                            <p>A future system for keeping the house clean without having to rethink the whole plan every week.</p>
-                        </div>
-                        <span class="tag">Coming soon</span>
-                    </div>
-
-                    <div class="app-card">
-                        <div>
                             <div class="app-icon">?</div>
                             <h3>Next Useful Thing</h3>
-                            <p>A holding spot for the next app, experiment, or workflow that earns a permanent place here.</p>
+                            <p>
+                                A holding spot for the next app, experiment, or workflow
+                                that earns a permanent place here.
+                            </p>
                         </div>
+
                         <span class="tag">Workbench</span>
                     </div>
                 </div>
@@ -465,11 +488,18 @@
                 <div class="notes">
                     <div class="note-card">
                         <h3>Build for real life.</h3>
-                        <p>Every tool here should make something easier, calmer, clearer, or more manageable.</p>
+                        <p>
+                            Every tool here should make something easier, calmer,
+                            clearer, or more manageable.
+                        </p>
                     </div>
+
                     <div class="note-card">
                         <h3>Keep it warm.</h3>
-                        <p>Useful software does not have to feel cold. This site should feel like a workshop with the lights on.</p>
+                        <p>
+                            Useful software does not have to feel cold. This site
+                            should feel like a workshop with the lights on.
+                        </p>
                     </div>
                 </div>
             </section>

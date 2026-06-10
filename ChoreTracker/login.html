@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chore Tracker Login</title>
+
+    <!-- Reference your existing stylesheet -->
+    <link rel="stylesheet" href="../Budget/styles.css">
+
+    <style>
+        body {
+            display: grid;
+            place-items: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .auth-card {
+            width: min(460px, 100%);
+            background: var(--card);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(18px);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius);
+            padding: 30px;
+        }
+
+        .auth-title {
+            margin: 0;
+            text-align: center;
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            letter-spacing: -0.06em;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            text-align: center;
+            margin: 12px 0 24px;
+        }
+
+        .auth-form {
+            display: grid;
+            gap: 14px;
+        }
+
+        .link {
+            text-align: center;
+            color: var(--blue);
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .message {
+            margin-top: 18px;
+            text-align: center;
+            min-height: 22px;
+        }
+
+        .success {
+            color: var(--green);
+        }
+
+        .error {
+            color: var(--red);
+        }
+
+        #registerSection {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="auth-card">
+
+        <h1 class="auth-title">Chore Tracker</h1>
+
+        <p class="subtitle">
+            Keep your home routine organized.
+        </p>
+
+        <!-- LOGIN FORM -->
+        <section id="loginSection">
+
+            <div class="auth-form">
+
+                <label>
+                    Email
+                    <input type="email" id="loginEmail" placeholder="you@example.com">
+                </label>
+
+                <label>
+                    Password
+                    <input type="password" id="loginPassword" placeholder="Enter your password">
+                </label>
+
+                <button class="btn" id="loginBtn">
+                    Log In
+                </button>
+
+                <button class="btn ghost" id="showRegister">
+                    Create New Account
+                </button>
+
+            </div>
+
+            <div class="link" id="resetPassword">
+                Forgot Password?
+            </div>
+
+        </section>
+
+        <!-- REGISTER FORM -->
+        <section id="registerSection">
+
+            <div class="auth-form">
+
+                <label>
+                    Name
+                    <input type="text" id="displayName" placeholder="Your Name">
+                </label>
+
+                <label>
+                    Email
+                    <input type="email" id="registerEmail" placeholder="you@example.com">
+                </label>
+
+                <label>
+                    Password
+                    <input type="password" id="registerPassword" placeholder="Create a password">
+                </label>
+
+                <label>
+                    Confirm Password
+                    <input type="password" id="confirmPassword" placeholder="Confirm your password">
+                </label>
+
+                <button class="btn" id="createAccountBtn">
+                    Create Account
+                </button>
+
+                <button class="btn secondary" id="showLogin">
+                    Back To Login
+                </button>
+
+            </div>
+
+        </section>
+
+        <div id="message" class="message"></div>
+
+    </div>
+
+    <script type="module">
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            sendPasswordResetEmail,
+            updateProfile
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        import {
+            getFirestore,
+            doc,
+            setDoc,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // Replace with your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQ2LyVeN-ntb9qrMDlCL1laV1inhJwHLo",
+            authDomain: "chore-tracker-1838a.firebaseapp.com",
+            projectId: "chore-tracker-1838a",
+            storageBucket: "chore-tracker-1838a.firebasestorage.app",
+            messagingSenderId: "708353585360",
+            appId: "1:708353585360:web:3e9f88dfca0ce146e76ed5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const loginSection = document.getElementById("loginSection");
+        const registerSection = document.getElementById("registerSection");
+        const message = document.getElementById("message");
+
+        function showMessage(text, type = "") {
+            message.textContent = text;
+            message.className = `message ${type}`;
+        }
+
+        document.getElementById("showRegister").addEventListener("click", () => {
+            loginSection.style.display = "none";
+            registerSection.style.display = "block";
+            showMessage("");
+        });
+
+        document.getElementById("showLogin").addEventListener("click", () => {
+            registerSection.style.display = "none";
+            loginSection.style.display = "block";
+            showMessage("");
+        });
+
+        document.getElementById("loginBtn").addEventListener("click", async () => {
+
+            const email = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value.trim();
+
+            if (!email || !password) {
+                showMessage("Please enter your email and password.", "error");
+                return;
+            }
+
+            try {
+
+                await signInWithEmailAndPassword(
+                    auth,
+                    email,
+                    password
+                );
+
+                window.location.href = "index.html";
+
+            } catch (error) {
+
+                showMessage(error.message, "error");
+
+            }
+
+        });
+
+        document.getElementById("createAccountBtn").addEventListener("click", async () => {
+
+            const name = document.getElementById("displayName").value.trim();
+            const email = document.getElementById("registerEmail").value.trim();
+            const password = document.getElementById("registerPassword").value.trim();
+            const confirmPassword = document.getElementById("confirmPassword").value.trim();
+
+            if (!name || !email || !password || !confirmPassword) {
+
+                showMessage(
+                    "Please fill out all fields.",
+                    "error"
+                );
+
+                return;
+            }
+
+            if (password !== confirmPassword) {
+
+                showMessage(
+                    "Passwords do not match.",
+                    "error"
+                );
+
+                return;
+            }
+
+            try {
+
+                const userCredential =
+                    await createUserWithEmailAndPassword(
+                        auth,
+                        email,
+                        password
+                    );
+
+                const user = userCredential.user;
+
+                await updateProfile(user, {
+                    displayName: name
+                });
+
+                await setDoc(
+                    doc(db, "users", user.uid),
+                    {
+                        displayName: name,
+                        email: email,
+                        createdAt: serverTimestamp()
+                    }
+                );
+
+                window.location.href = "index.html";
+
+            } catch (error) {
+
+                showMessage(error.message, "error");
+
+            }
+
+        });
+
+        document.getElementById("resetPassword").addEventListener("click", async () => {
+
+            const email =
+                document.getElementById("loginEmail")
+                    .value
+                    .trim();
+
+            if (!email) {
+
+                showMessage(
+                    "Enter your email first.",
+                    "error"
+                );
+
+                return;
+            }
+
+            try {
+
+                await sendPasswordResetEmail(
+                    auth,
+                    email
+                );
+
+                showMessage(
+                    "Password reset email sent.",
+                    "success"
+                );
+
+            } catch (error) {
+
+                showMessage(
+                    error.message,
+                    "error"
+                );
+
+            }
+
+        });
+
+    </script>
+
+</body>
+</html>

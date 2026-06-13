@@ -46,6 +46,7 @@
       min-height: 22px;
       font-weight: bold;
       color: #b00020;
+      font-size: 14px;
     }
 
     .app {
@@ -83,7 +84,7 @@
 
     .input-row {
       display: grid;
-      grid-template-columns: 1fr 160px 120px;
+      grid-template-columns: 1fr 200px 150px;
       gap: 10px;
     }
 
@@ -123,6 +124,7 @@
       cursor: grab;
       font-weight: bold;
       user-select: none;
+      min-width: 135px;
     }
 
     .task small {
@@ -367,19 +369,25 @@
       div.draggable = true;
       div.dataset.id = task.id;
 
+      const taskText = document.createElement("span");
+      taskText.textContent = task.name;
+
       const deleteButton = document.createElement("button");
       deleteButton.className = "delete";
       deleteButton.textContent = "x";
-      deleteButton.addEventListener("click", () => deleteTask(task.id, sourceDay));
-
-      div.append(task.name);
-      div.appendChild(deleteButton);
+      deleteButton.addEventListener("click", function(event) {
+        event.stopPropagation();
+        deleteTask(task.id, sourceDay);
+      });
 
       const small = document.createElement("small");
-      small.textContent = `Recurring: ${task.recurring}`;
+      small.textContent = "Recurring: " + task.recurring;
+
+      div.appendChild(taskText);
+      div.appendChild(deleteButton);
       div.appendChild(small);
 
-      div.addEventListener("dragstart", e => {
+      div.addEventListener("dragstart", function(e) {
         e.dataTransfer.setData("taskId", task.id);
       });
 
@@ -412,16 +420,16 @@
           if (task) dropZone.appendChild(renderTask(task, day));
         });
 
-        dayDiv.addEventListener("dragover", e => {
+        dayDiv.addEventListener("dragover", function(e) {
           e.preventDefault();
           dayDiv.classList.add("drag-over");
         });
 
-        dayDiv.addEventListener("dragleave", () => {
+        dayDiv.addEventListener("dragleave", function() {
           dayDiv.classList.remove("drag-over");
         });
 
-        dayDiv.addEventListener("drop", async e => {
+        dayDiv.addEventListener("drop", async function(e) {
           e.preventDefault();
           dayDiv.classList.remove("drag-over");
 
@@ -448,6 +456,7 @@
         schedule[sourceDay] = schedule[sourceDay].filter(id => id !== taskId);
       } else {
         tasks = tasks.filter(task => task.id !== taskId);
+
         days.forEach(day => {
           schedule[day] = schedule[day].filter(id => id !== taskId);
         });
@@ -460,13 +469,21 @@
     authButton.addEventListener("click", handleAuth);
     toggleAuthButton.addEventListener("click", toggleAuthMode);
     document.getElementById("addTaskButton").addEventListener("click", addTask);
-    document.getElementById("signOutButton").addEventListener("click", () => signOut(auth));
+    document.getElementById("signOutButton").addEventListener("click", function() {
+      signOut(auth);
+    });
 
-    passwordInput.addEventListener("keydown", e => {
+    passwordInput.addEventListener("keydown", function(e) {
       if (e.key === "Enter") handleAuth();
     });
 
-    onAuthStateChanged(auth, async user => {
+    document.getElementById("taskInput").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") addTask();
+    });
+
+    resetSchedule();
+
+    onAuthStateChanged(auth, async function(user) {
       currentUser = user;
 
       if (user) {

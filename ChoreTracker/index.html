@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chore Schedule Board</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -18,9 +16,57 @@
       color: #222;
     }
 
+    .auth-screen {
+      min-height: calc(100vh - 48px);
+      display: grid;
+      place-items: center;
+    }
+
+    .auth-card {
+      width: min(430px, 100%);
+      background: white;
+      border: 3px solid #222;
+      padding: 22px;
+      box-shadow: 10px 10px 0 #222;
+    }
+
+    .auth-card h1 { margin-top: 0; }
+
+    .auth-card input,
+    .auth-card button {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .auth-toggle {
+      background: white;
+    }
+
+    .auth-message {
+      min-height: 22px;
+      font-weight: bold;
+      color: #b00020;
+    }
+
     .app {
       max-width: 1200px;
       margin: 0 auto;
+      display: none;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .user-pill {
+      background: white;
+      border: 3px solid #222;
+      padding: 10px 12px;
+      font-weight: bold;
     }
 
     .top-box {
@@ -113,9 +159,7 @@
       gap: 8px;
     }
 
-    .day.drag-over {
-      background: #fff4cf;
-    }
+    .day.drag-over { background: #fff4cf; }
 
     .delete {
       float: right;
@@ -128,24 +172,37 @@
     }
 
     @media (max-width: 900px) {
-      .schedule {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .input-row {
-        grid-template-columns: 1fr;
-      }
+      .schedule { grid-template-columns: repeat(2, 1fr); }
+      .input-row { grid-template-columns: 1fr; }
+      .app-header { flex-direction: column; align-items: stretch; }
     }
 
     @media (max-width: 500px) {
-      .schedule {
-        grid-template-columns: 1fr;
-      }
+      .schedule { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <div class="app">
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <h1 id="authTitle">Sign In</h1>
+
+      <input id="emailInput" type="email" placeholder="Email" autocomplete="email" />
+      <input id="passwordInput" type="password" placeholder="Password" autocomplete="current-password" />
+
+      <button id="authButton">Sign In</button>
+      <button id="toggleAuthButton" class="auth-toggle">Create Account</button>
+
+      <div id="authMessage" class="auth-message"></div>
+    </div>
+  </div>
+
+  <div id="app" class="app">
+    <div class="app-header">
+      <div class="user-pill">Signed in as <span id="userEmail"></span></div>
+      <button id="signOutButton">Sign Out</button>
+    </div>
+
     <div class="top-box">
       <h1>Enter Task</h1>
       <div class="input-row">
@@ -154,7 +211,7 @@
           <option value="Yes">Recurring: Yes</option>
           <option value="No">Recurring: No</option>
         </select>
-        <button onclick="addTask()">Add</button>
+        <button id="addTaskButton">Add</button>
       </div>
     </div>
 
@@ -166,36 +223,141 @@
     <div id="schedule" class="schedule"></div>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDKuMY6XUp56VFszfMr7Lu7ZRXiuCWnu9Y",
+      authDomain: "samdanner-7d2a6.firebaseapp.com",
+      projectId: "samdanner-7d2a6",
+      storageBucket: "samdanner-7d2a6.firebasestorage.app",
+      messagingSenderId: "868408698259",
+      appId: "1:868408698259:web:e9e40dc257368c87293466",
+      measurementId: "G-5ZR9S8F03F"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const auth = getAuth(firebaseApp);
+    const db = getFirestore(firebaseApp);
+
     const days = ["Daily", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-    let tasks = JSON.parse(localStorage.getItem("simpleChoreTasks")) || [];
-    let schedule = JSON.parse(localStorage.getItem("simpleChoreSchedule")) || {};
+    let createMode = false;
+    let currentUser = null;
+    let tasks = [];
+    let schedule = {};
 
-    days.forEach(day => {
-      if (!schedule[day]) schedule[day] = [];
-    });
+    const authScreen = document.getElementById("authScreen");
+    const appScreen = document.getElementById("app");
+    const authTitle = document.getElementById("authTitle");
+    const authButton = document.getElementById("authButton");
+    const toggleAuthButton = document.getElementById("toggleAuthButton");
+    const authMessage = document.getElementById("authMessage");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
 
-    function saveData() {
-      localStorage.setItem("simpleChoreTasks", JSON.stringify(tasks));
-      localStorage.setItem("simpleChoreSchedule", JSON.stringify(schedule));
+    function resetSchedule() {
+      schedule = {};
+      days.forEach(day => {
+        schedule[day] = [];
+      });
     }
 
-    function addTask() {
+    function getUserDocRef() {
+      return doc(db, "users", currentUser.uid, "apps", "choreSchedule");
+    }
+
+    async function loadData() {
+      resetSchedule();
+      tasks = [];
+
+      const snap = await getDoc(getUserDocRef());
+
+      if (snap.exists()) {
+        const data = snap.data();
+        tasks = data.tasks || [];
+        schedule = data.schedule || schedule;
+
+        days.forEach(day => {
+          if (!schedule[day]) schedule[day] = [];
+        });
+      } else {
+        await saveData();
+      }
+
+      render();
+    }
+
+    async function saveData() {
+      if (!currentUser) return;
+
+      await setDoc(getUserDocRef(), {
+        tasks,
+        schedule,
+        updatedAt: new Date().toISOString()
+      });
+    }
+
+    async function handleAuth() {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      authMessage.textContent = "";
+
+      if (!email || !password) {
+        authMessage.textContent = "Enter an email and password.";
+        return;
+      }
+
+      try {
+        if (createMode) {
+          await createUserWithEmailAndPassword(auth, email, password);
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+        }
+      } catch (error) {
+        authMessage.textContent = error.message;
+      }
+    }
+
+    function toggleAuthMode() {
+      createMode = !createMode;
+      authMessage.textContent = "";
+
+      authTitle.textContent = createMode ? "Create Account" : "Sign In";
+      authButton.textContent = createMode ? "Create Account" : "Sign In";
+      toggleAuthButton.textContent = createMode ? "Back to Sign In" : "Create Account";
+    }
+
+    async function addTask() {
       const input = document.getElementById("taskInput");
       const recurring = document.getElementById("recurringInput").value;
 
       if (!input.value.trim()) return;
 
       const task = {
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         name: input.value.trim(),
-        recurring: recurring
+        recurring
       };
 
       tasks.push(task);
       input.value = "";
-      saveData();
+
+      await saveData();
       render();
     }
 
@@ -205,11 +367,17 @@
       div.draggable = true;
       div.dataset.id = task.id;
 
-      div.innerHTML = `
-        ${task.name}
-        <button class="delete" onclick="deleteTask('${task.id}', '${sourceDay || ""}')">x</button>
-        <small>Recurring: ${task.recurring}</small>
-      `;
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "delete";
+      deleteButton.textContent = "x";
+      deleteButton.addEventListener("click", () => deleteTask(task.id, sourceDay));
+
+      div.append(task.name);
+      div.appendChild(deleteButton);
+
+      const small = document.createElement("small");
+      small.textContent = `Recurring: ${task.recurring}`;
+      div.appendChild(small);
 
       div.addEventListener("dragstart", e => {
         e.dataTransfer.setData("taskId", task.id);
@@ -233,12 +401,11 @@
         const dayDiv = document.createElement("div");
         dayDiv.className = "day";
 
-        dayDiv.innerHTML = `
-          <h2>${day}</h2>
-          <div class="drop-zone"></div>
-        `;
+        const heading = document.createElement("h2");
+        heading.textContent = day;
 
-        const dropZone = dayDiv.querySelector(".drop-zone");
+        const dropZone = document.createElement("div");
+        dropZone.className = "drop-zone";
 
         schedule[day].forEach(taskId => {
           const task = tasks.find(t => t.id === taskId);
@@ -254,7 +421,7 @@
           dayDiv.classList.remove("drag-over");
         });
 
-        dayDiv.addEventListener("drop", e => {
+        dayDiv.addEventListener("drop", async e => {
           e.preventDefault();
           dayDiv.classList.remove("drag-over");
 
@@ -265,15 +432,18 @@
           });
 
           schedule[day].push(taskId);
-          saveData();
+
+          await saveData();
           render();
         });
 
+        dayDiv.appendChild(heading);
+        dayDiv.appendChild(dropZone);
         scheduleDiv.appendChild(dayDiv);
       });
     }
 
-    function deleteTask(taskId, sourceDay) {
+    async function deleteTask(taskId, sourceDay) {
       if (sourceDay) {
         schedule[sourceDay] = schedule[sourceDay].filter(id => id !== taskId);
       } else {
@@ -283,11 +453,34 @@
         });
       }
 
-      saveData();
+      await saveData();
       render();
     }
 
-    render();
+    authButton.addEventListener("click", handleAuth);
+    toggleAuthButton.addEventListener("click", toggleAuthMode);
+    document.getElementById("addTaskButton").addEventListener("click", addTask);
+    document.getElementById("signOutButton").addEventListener("click", () => signOut(auth));
+
+    passwordInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") handleAuth();
+    });
+
+    onAuthStateChanged(auth, async user => {
+      currentUser = user;
+
+      if (user) {
+        document.getElementById("userEmail").textContent = user.email;
+        authScreen.style.display = "none";
+        appScreen.style.display = "block";
+        await loadData();
+      } else {
+        tasks = [];
+        resetSchedule();
+        authScreen.style.display = "grid";
+        appScreen.style.display = "none";
+      }
+    });
   </script>
 </body>
 </html>

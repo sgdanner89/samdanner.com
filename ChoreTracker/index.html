@@ -1,271 +1,293 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chore Tracker Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chore Schedule Board</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-    <link rel="stylesheet" href="../budget/styles.css">
+    body {
+      margin: 0;
+      padding: 24px;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #f4f1ea;
+      color: #222;
+    }
 
-    <style>
-        .quick-card {
-            text-decoration: none;
-        }
-    </style>
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .top-box {
+      background: white;
+      border: 3px solid #222;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: 28px;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 160px 120px;
+      gap: 10px;
+    }
+
+    input,
+    select,
+    button {
+      font-size: 16px;
+      padding: 12px;
+      border: 2px solid #222;
+      background: white;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: bold;
+      background: #ffcf5c;
+    }
+
+    .task-section {
+      background: white;
+      border: 3px solid #222;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+
+    .task-list {
+      min-height: 90px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .task {
+      border: 2px solid #222;
+      background: #e7f0ff;
+      padding: 10px 12px;
+      cursor: grab;
+      font-weight: bold;
+      user-select: none;
+    }
+
+    .task small {
+      display: block;
+      font-weight: normal;
+      margin-top: 4px;
+    }
+
+    .schedule {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 10px;
+    }
+
+    .day {
+      min-height: 300px;
+      background: white;
+      border: 3px solid #222;
+      padding: 10px;
+    }
+
+    .day h2 {
+      margin: 0 0 10px;
+      text-align: center;
+      font-size: 18px;
+      border-bottom: 2px solid #222;
+      padding-bottom: 8px;
+    }
+
+    .drop-zone {
+      min-height: 230px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .day.drag-over {
+      background: #fff4cf;
+    }
+
+    .delete {
+      float: right;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-weight: bold;
+      padding: 0;
+      margin-left: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .schedule {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .input-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .schedule {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-
 <body>
-
-    <div class="app">
-
-        <header>
-            <div class="brand">
-                <h1 id="greeting">Hi there</h1>
-                <p id="subGreeting">Welcome back to your Chore Tracker.</p>
-            </div>
-
-            <button class="btn ghost" id="logoutBtn">Log Out</button>
-        </header>
-
-        <section class="panel">
-
-            <div class="module-title">
-                <div>
-                    <h2>Dashboard</h2>
-                    <p>What would you like to work on today?</p>
-                </div>
-            </div>
-
-            <div class="grid summary-grid">
-
-                <div class="card">
-                    <div class="card-label">Today</div>
-                    <div class="card-value blue" id="todayName">Loading...</div>
-                </div>
-
-                <div class="card">
-                    <div class="card-label">Scheduled Tasks</div>
-                    <div class="card-value positive" id="scheduledTasks">0</div>
-                </div>
-
-                <div class="card">
-                    <div class="card-label">Estimated Time</div>
-                    <div class="card-value yellow" id="estimatedTime">0 min</div>
-                </div>
-
-            </div>
-
-        </section>
-
-        <section class="panel">
-
-            <div class="module-title">
-                <div>
-                    <h2>App Pages</h2>
-                    <p>Each feature has its own page so we can build this one piece at a time.</p>
-                </div>
-            </div>
-
-            <div class="grid quick-links">
-
-                <a class="quick-card" href="schedule.html">
-                    <strong>View Today</strong>
-                    <span>See today's chore agenda.</span>
-                </a>
-
-                <a class="quick-card" href="input.html">
-                    <strong>Add Task</strong>
-                    <span>Create a new chore or routine.</span>
-                </a>
-
-                <a class="quick-card" href="tasks.html">
-                    <strong>Manage Tasks</strong>
-                    <span>Edit, delete, pause, or reactivate chores.</span>
-                </a>
-
-                <a class="quick-card" href="organize.html">
-                    <strong>Organize Schedule</strong>
-                    <span>Assign tasks to days or calendar slots.</span>
-                </a>
-
-                <a class="quick-card" href="login.html">
-                    <strong>Login Page</strong>
-                    <span>Return to authentication screen.</span>
-                </a>
-
-            </div>
-
-        </section>
-
+  <div class="app">
+    <div class="top-box">
+      <h1>Enter Task</h1>
+      <div class="input-row">
+        <input id="taskInput" placeholder="Enter task..." />
+        <select id="recurringInput">
+          <option value="Yes">Recurring: Yes</option>
+          <option value="No">Recurring: No</option>
+        </select>
+        <button onclick="addTask()">Add</button>
+      </div>
     </div>
 
-    <script type="module">
+    <div class="task-section">
+      <h1>Tasks</h1>
+      <div id="taskList" class="task-list"></div>
+    </div>
 
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    <div id="schedule" class="schedule"></div>
+  </div>
 
-        import {
-            getAuth,
-            onAuthStateChanged,
-            signOut
-        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  <script>
+    const days = ["Daily", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-        import {
-            getFirestore,
-            doc,
-            getDoc,
-            collection,
-            query,
-            where,
-            onSnapshot
-        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    let tasks = JSON.parse(localStorage.getItem("simpleChoreTasks")) || [];
+    let schedule = JSON.parse(localStorage.getItem("simpleChoreSchedule")) || {};
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAQ2LyVeN-ntb9qrMDlCL1laV1inhJwHLo",
-            authDomain: "chore-tracker-1838a.firebaseapp.com",
-            projectId: "chore-tracker-1838a",
-            storageBucket: "chore-tracker-1838a.firebasestorage.app",
-            messagingSenderId: "708353585360",
-            appId: "1:708353585360:web:3e9f88dfca0ce146e76ed5"
-        };
+    days.forEach(day => {
+      if (!schedule[day]) schedule[day] = [];
+    });
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    function saveData() {
+      localStorage.setItem("simpleChoreTasks", JSON.stringify(tasks));
+      localStorage.setItem("simpleChoreSchedule", JSON.stringify(schedule));
+    }
 
-        const greeting = document.getElementById("greeting");
-        const subGreeting = document.getElementById("subGreeting");
-        const todayName = document.getElementById("todayName");
-        const scheduledTasks = document.getElementById("scheduledTasks");
-        const estimatedTime = document.getElementById("estimatedTime");
-        const logoutBtn = document.getElementById("logoutBtn");
+    function addTask() {
+      const input = document.getElementById("taskInput");
+      const recurring = document.getElementById("recurringInput").value;
 
-        function getTodayString() {
-            return new Date().toISOString().split("T")[0];
-        }
+      if (!input.value.trim()) return;
 
-        function getFriendlyDay() {
-            return new Date().toLocaleDateString("en-US", {
-                weekday: "long"
-            });
-        }
+      const task = {
+        id: Date.now().toString(),
+        name: input.value.trim(),
+        recurring: recurring
+      };
 
-        function dateDiffInDays(startDate, endDate) {
-            const start = new Date(startDate + "T00:00:00");
-            const end = new Date(endDate + "T00:00:00");
-            return Math.floor((end - start) / 86400000);
-        }
+      tasks.push(task);
+      input.value = "";
+      saveData();
+      render();
+    }
 
-        function shouldShowTaskToday(task) {
-            if (!task.active) return false;
-            if (!task.startDate) return false;
+    function renderTask(task, sourceDay = null) {
+      const div = document.createElement("div");
+      div.className = "task";
+      div.draggable = true;
+      div.dataset.id = task.id;
 
-            const today = getTodayString();
-            const daysSinceStart = dateDiffInDays(task.startDate, today);
+      div.innerHTML = `
+        ${task.name}
+        <button class="delete" onclick="deleteTask('${task.id}', '${sourceDay || ""}')">x</button>
+        <small>Recurring: ${task.recurring}</small>
+      `;
 
-            if (daysSinceStart < 0) return false;
+      div.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("taskId", task.id);
+      });
 
-            const interval = Number(task.recurrenceInterval || 1);
+      return div;
+    }
 
-            if (task.recurrenceType === "One Time") {
-                return task.startDate === today;
-            }
+    function render() {
+      const taskList = document.getElementById("taskList");
+      taskList.innerHTML = "";
 
-            if (task.recurrenceType === "Daily") {
-                return true;
-            }
+      tasks.forEach(task => {
+        taskList.appendChild(renderTask(task));
+      });
 
-            if (task.recurrenceType === "Weekly") {
-                return daysSinceStart % 7 === 0;
-            }
+      const scheduleDiv = document.getElementById("schedule");
+      scheduleDiv.innerHTML = "";
 
-            if (task.recurrenceType === "Every X Days") {
-                return daysSinceStart % interval === 0;
-            }
+      days.forEach(day => {
+        const dayDiv = document.createElement("div");
+        dayDiv.className = "day";
 
-            if (task.recurrenceType === "Every X Weeks") {
-                return daysSinceStart % (interval * 7) === 0;
-            }
+        dayDiv.innerHTML = `
+          <h2>${day}</h2>
+          <div class="drop-zone"></div>
+        `;
 
-            if (task.recurrenceType === "Every X Months") {
-                const start = new Date(task.startDate + "T00:00:00");
-                const todayDate = new Date(today + "T00:00:00");
+        const dropZone = dayDiv.querySelector(".drop-zone");
 
-                const monthDiff =
-                    (todayDate.getFullYear() - start.getFullYear()) * 12 +
-                    (todayDate.getMonth() - start.getMonth());
-
-                return todayDate.getDate() === start.getDate() && monthDiff % interval === 0;
-            }
-
-            return false;
-        }
-
-        function setToday() {
-            const day = getFriendlyDay();
-
-            todayName.textContent = day;
-            subGreeting.textContent = `Happy ${day}. Here's your home base for today.`;
-        }
-
-        async function loadUserProfile(user) {
-            const userRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userRef);
-
-            if (userSnap.exists()) {
-                const userData = userSnap.data();
-                greeting.textContent = `Hi, ${userData.displayName}`;
-            } else {
-                greeting.textContent = `Hi, ${user.email}`;
-            }
-        }
-
-        function loadDashboardTasks(user) {
-            const q = query(
-                collection(db, "tasks"),
-                where("userId", "==", user.uid)
-            );
-
-            onSnapshot(q, (snapshot) => {
-                const tasks = snapshot.docs.map((docSnap) => {
-                    return {
-                        id: docSnap.id,
-                        ...docSnap.data()
-                    };
-                });
-
-                const todaysTasks = tasks.filter(shouldShowTaskToday);
-
-                const totalMinutes = todaysTasks.reduce((sum, task) => {
-                    return sum + Number(task.estimatedMinutes || 0);
-                }, 0);
-
-                scheduledTasks.textContent = todaysTasks.length;
-                estimatedTime.textContent = `${totalMinutes} min`;
-
-            }, (error) => {
-                console.error(error);
-                scheduledTasks.textContent = "Error";
-                estimatedTime.textContent = "Error";
-            });
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = "login.html";
-                return;
-            }
-
-            setToday();
-            await loadUserProfile(user);
-            loadDashboardTasks(user);
+        schedule[day].forEach(taskId => {
+          const task = tasks.find(t => t.id === taskId);
+          if (task) dropZone.appendChild(renderTask(task, day));
         });
 
-        logoutBtn.addEventListener("click", async () => {
-            await signOut(auth);
-            window.location.href = "login.html";
+        dayDiv.addEventListener("dragover", e => {
+          e.preventDefault();
+          dayDiv.classList.add("drag-over");
         });
 
-    </script>
+        dayDiv.addEventListener("dragleave", () => {
+          dayDiv.classList.remove("drag-over");
+        });
 
+        dayDiv.addEventListener("drop", e => {
+          e.preventDefault();
+          dayDiv.classList.remove("drag-over");
+
+          const taskId = e.dataTransfer.getData("taskId");
+
+          days.forEach(d => {
+            schedule[d] = schedule[d].filter(id => id !== taskId);
+          });
+
+          schedule[day].push(taskId);
+          saveData();
+          render();
+        });
+
+        scheduleDiv.appendChild(dayDiv);
+      });
+    }
+
+    function deleteTask(taskId, sourceDay) {
+      if (sourceDay) {
+        schedule[sourceDay] = schedule[sourceDay].filter(id => id !== taskId);
+      } else {
+        tasks = tasks.filter(task => task.id !== taskId);
+        days.forEach(day => {
+          schedule[day] = schedule[day].filter(id => id !== taskId);
+        });
+      }
+
+      saveData();
+      render();
+    }
+
+    render();
+  </script>
 </body>
 </html>

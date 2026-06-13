@@ -15,6 +15,7 @@
             --green: #38d996;
             --amber: #f4b860;
             --blue: #8fb8ff;
+            --red: #ff8f8f;
             --border: rgba(255, 248, 235, 0.14);
             --shadow: 0 28px 80px rgba(0, 0, 0, 0.36);
         }
@@ -34,6 +35,130 @@
         a {
             color: inherit;
             text-decoration: none;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .auth-screen {
+            width: min(1120px, calc(100% - 32px));
+            min-height: 100vh;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 430px;
+            gap: 28px;
+            align-items: center;
+            padding: 40px 0;
+        }
+
+        .auth-intro,
+        .auth-card {
+            border: 1px solid var(--border);
+            background: var(--card);
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+        }
+
+        .auth-intro {
+            padding: 42px;
+            min-height: 480px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .auth-intro::after {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            border-radius: 999px;
+            background: rgba(244, 184, 96, 0.14);
+            right: -80px;
+            bottom: -100px;
+            filter: blur(4px);
+        }
+
+        .auth-intro h1 {
+            margin: 0;
+            font-size: clamp(3rem, 8vw, 6.4rem);
+            line-height: 0.86;
+            letter-spacing: -0.08em;
+            max-width: 780px;
+        }
+
+        .auth-intro p,
+        .auth-card p {
+            color: var(--muted);
+            font-family: system-ui, sans-serif;
+            line-height: 1.6;
+        }
+
+        .auth-card {
+            padding: 28px;
+        }
+
+        .auth-card h2 {
+            margin: 0 0 8px;
+            font-size: 2rem;
+            letter-spacing: -0.06em;
+        }
+
+        .auth-form {
+            display: grid;
+            gap: 14px;
+            margin-top: 22px;
+            font-family: system-ui, sans-serif;
+        }
+
+        .form-field {
+            display: grid;
+            gap: 7px;
+        }
+
+        .form-field label {
+            color: var(--muted);
+            font-size: 0.88rem;
+            font-weight: 750;
+        }
+
+        .form-field input {
+            width: 100%;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.22);
+            color: var(--text);
+            border-radius: 16px;
+            padding: 13px 14px;
+            outline: none;
+        }
+
+        .form-field input:focus {
+            border-color: rgba(56, 217, 150, 0.55);
+            box-shadow: 0 0 0 4px rgba(56, 217, 150, 0.09);
+        }
+
+        .auth-message {
+            min-height: 22px;
+            color: var(--red);
+            font-size: 0.92rem;
+        }
+
+        .auth-toggle {
+            color: var(--amber);
+            background: transparent;
+            border: 0;
+            padding: 0;
+            font-weight: 850;
+            cursor: pointer;
         }
 
         .page {
@@ -78,18 +203,36 @@
             color: var(--muted);
             font-family: system-ui, sans-serif;
             font-size: 0.92rem;
+            align-items: center;
         }
 
-        nav a {
+        nav a,
+        .nav-button {
             padding: 9px 12px;
             border: 1px solid transparent;
             border-radius: 999px;
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
         }
 
-        nav a:hover {
+        nav a:hover,
+        .nav-button:hover {
             border-color: var(--border);
             background: rgba(255, 255, 255, 0.04);
             color: var(--text);
+        }
+
+        .user-pill {
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--green);
+            border: 1px solid rgba(56, 217, 150, 0.22);
+            border-radius: 999px;
+            padding: 9px 12px;
+            background: rgba(56, 217, 150, 0.08);
         }
 
         .hero {
@@ -179,6 +322,7 @@
             border: 1px solid var(--border);
             background: rgba(255, 255, 255, 0.06);
             color: var(--text);
+            cursor: pointer;
         }
 
         .btn.primary {
@@ -333,6 +477,10 @@
         }
 
         @media (max-width: 860px) {
+            .auth-screen {
+                grid-template-columns: 1fr;
+            }
+
             header,
             .section-title {
                 align-items: flex-start;
@@ -349,26 +497,75 @@
                 flex-wrap: wrap;
             }
 
-            .hero-card {
+            .hero-card,
+            .auth-intro {
                 padding: 30px;
                 min-height: 390px;
             }
         }
     </style>
 </head>
-
 <body>
-    <div class="page">
+    <section class="auth-screen" id="authScreen">
+        <div class="auth-intro">
+            <div>
+                <div class="eyebrow">Private homebase</div>
+                <h1>Sign in first, then open the workbench.</h1>
+                <p>
+                    This page uses Firebase Authentication for sign in and account creation.
+                    A user document is also created in Firestore when a new account is made.
+                </p>
+            </div>
+            <p>Replace the firebaseConfig placeholder in the script with your Firebase project settings.</p>
+        </div>
+
+        <div class="auth-card">
+            <div class="logo" style="margin-bottom: 22px;">
+                <span class="logo-mark">SD</span>
+                <span>samdanner.com</span>
+            </div>
+            <h2 id="authTitle">Sign in</h2>
+            <p id="authSubtitle">Use your email and password to enter the site.</p>
+
+            <form class="auth-form" id="authForm">
+                <div class="form-field hidden" id="nameField">
+                    <label for="displayName">Name</label>
+                    <input id="displayName" type="text" autocomplete="name" placeholder="Sam Danner" />
+                </div>
+
+                <div class="form-field">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+                </div>
+
+                <div class="form-field">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" autocomplete="current-password" placeholder="At least 6 characters" required minlength="6" />
+                </div>
+
+                <div class="auth-message" id="authMessage"></div>
+
+                <button class="btn primary" type="submit" id="authSubmit">Sign in</button>
+                <p style="margin: 0;">
+                    <span id="toggleText">Need an account?</span>
+                    <button class="auth-toggle" type="button" id="toggleAuth">Create account</button>
+                </p>
+            </form>
+        </div>
+    </section>
+
+    <div class="page hidden" id="sitePage">
         <header>
             <a class="logo" href="/">
                 <span class="logo-mark">SD</span>
                 <span>samdanner.com</span>
             </a>
-
             <nav>
+                <span class="user-pill" id="userEmail">Signed in</span>
                 <a href="#apps">Apps</a>
                 <a href="#workbench">Workbench</a>
                 <a href="#notes">Notes</a>
+                <button class="nav-button" type="button" id="signOutBtn">Sign out</button>
             </nav>
         </header>
 
@@ -377,18 +574,14 @@
                 <div class="hero-card">
                     <div>
                         <div class="eyebrow">Personal homebase</div>
-
                         <h1>Useful little systems, built one at a time.</h1>
-
                         <p>
                             A cozy digital workbench for the tools I build to make money, chores, projects,
                             learning, and everyday life feel a little more organized.
                         </p>
-
                         <div class="hero-actions">
                             <a class="btn primary" href="#apps">View apps</a>
                             <a class="btn" href="budget/index.html">Open budget app</a>
-                            <a class="btn" href="ChoreTracker/login.html">Open chore tracker</a>
                         </div>
                     </div>
                 </div>
@@ -396,30 +589,25 @@
                 <aside class="side-card">
                     <div>
                         <div class="eyebrow">On the bench</div>
-
                         <div class="workbench">
                             <div class="workbench-row">
                                 <span>Now live</span>
                                 <strong>Budget Dashboard</strong>
                             </div>
-
                             <div class="workbench-row">
-                                <span>Now live</span>
+                                <span>Next idea</span>
                                 <strong>Chore Tracker</strong>
                             </div>
-
                             <div class="workbench-row">
                                 <span>Later</span>
                                 <strong>Personal Wiki</strong>
                             </div>
-
                             <div class="workbench-row">
                                 <span>Rule</span>
                                 <strong>Keep it useful</strong>
                             </div>
                         </div>
                     </div>
-
                     <p>
                         Not a corporate portfolio. Not a shiny fake startup. Just a home for practical tools,
                         experiments, and things worth keeping.
@@ -440,38 +628,26 @@
                         <div>
                             <div class="app-icon">$</div>
                             <h3>Paycheck Budget Dashboard</h3>
-                            <p>
-                                Plan money paycheck by paycheck, track bills, debts,
-                                spending, and projected cash flow.
-                            </p>
+                            <p>Plan money paycheck by paycheck, track bills, debts, spending, and projected cash flow.</p>
                         </div>
-
-                        <span class="tag">Open app</span>
-                    </a>
-
-                    <a class="app-card" href="ChoreTracker/login.html">
-                        <div>
-                            <div class="app-icon">✓</div>
-                            <h3>Chore Tracker</h3>
-                            <p>
-                                Build recurring chores, create schedules, track completions,
-                                and keep the house running without having to remember everything.
-                            </p>
-                        </div>
-
                         <span class="tag">Open app</span>
                     </a>
 
                     <div class="app-card">
                         <div>
+                            <div class="app-icon">✓</div>
+                            <h3>Chore Tracker</h3>
+                            <p>A future system for keeping the house clean without having to rethink the whole plan every week.</p>
+                        </div>
+                        <span class="tag">Coming soon</span>
+                    </div>
+
+                    <div class="app-card">
+                        <div>
                             <div class="app-icon">?</div>
                             <h3>Next Useful Thing</h3>
-                            <p>
-                                A holding spot for the next app, experiment, or workflow
-                                that earns a permanent place here.
-                            </p>
+                            <p>A holding spot for the next app, experiment, or workflow that earns a permanent place here.</p>
                         </div>
-
                         <span class="tag">Workbench</span>
                     </div>
                 </div>
@@ -488,18 +664,11 @@
                 <div class="notes">
                     <div class="note-card">
                         <h3>Build for real life.</h3>
-                        <p>
-                            Every tool here should make something easier, calmer,
-                            clearer, or more manageable.
-                        </p>
+                        <p>Every tool here should make something easier, calmer, clearer, or more manageable.</p>
                     </div>
-
                     <div class="note-card">
                         <h3>Keep it warm.</h3>
-                        <p>
-                            Useful software does not have to feel cold. This site
-                            should feel like a workshop with the lights on.
-                        </p>
+                        <p>Useful software does not have to feel cold. This site should feel like a workshop with the lights on.</p>
                     </div>
                 </div>
             </section>
@@ -509,5 +678,148 @@
             Built at samdanner.com — one useful thing at a time.
         </footer>
     </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            updateProfile
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import {
+            getFirestore,
+            doc,
+            setDoc,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+        // Replace these values with Project settings > General > Your apps > Firebase SDK config.
+        const firebaseConfig = {
+          apiKey: "AIzaSyDKuMY6XUp56VFszfMr7Lu7ZRXiuCWnu9Y",
+          authDomain: "samdanner-7d2a6.firebaseapp.com",
+          projectId: "samdanner-7d2a6",
+          storageBucket: "samdanner-7d2a6.firebasestorage.app",
+          messagingSenderId: "868408698259",
+          appId: "1:868408698259:web:e9e40dc257368c87293466",
+          measurementId: "G-5ZR9S8F03F"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const authScreen = document.getElementById("authScreen");
+        const sitePage = document.getElementById("sitePage");
+        const authForm = document.getElementById("authForm");
+        const authTitle = document.getElementById("authTitle");
+        const authSubtitle = document.getElementById("authSubtitle");
+        const authSubmit = document.getElementById("authSubmit");
+        const toggleAuth = document.getElementById("toggleAuth");
+        const toggleText = document.getElementById("toggleText");
+        const nameField = document.getElementById("nameField");
+        const displayNameInput = document.getElementById("displayName");
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+        const authMessage = document.getElementById("authMessage");
+        const signOutBtn = document.getElementById("signOutBtn");
+        const userEmail = document.getElementById("userEmail");
+
+        let isCreatingAccount = false;
+
+        function setAuthMode(createMode) {
+            isCreatingAccount = createMode;
+            authMessage.textContent = "";
+            nameField.classList.toggle("hidden", !isCreatingAccount);
+            displayNameInput.required = isCreatingAccount;
+
+            authTitle.textContent = isCreatingAccount ? "Create account" : "Sign in";
+            authSubtitle.textContent = isCreatingAccount
+                ? "Create your account, then the site will open."
+                : "Use your email and password to enter the site.";
+            authSubmit.textContent = isCreatingAccount ? "Create account" : "Sign in";
+            toggleText.textContent = isCreatingAccount ? "Already have an account?" : "Need an account?";
+            toggleAuth.textContent = isCreatingAccount ? "Sign in" : "Create account";
+            passwordInput.autocomplete = isCreatingAccount ? "new-password" : "current-password";
+        }
+
+        function showSite(user) {
+            authScreen.classList.add("hidden");
+            sitePage.classList.remove("hidden");
+            userEmail.textContent = user.displayName || user.email || "Signed in";
+        }
+
+        function showAuth() {
+            sitePage.classList.add("hidden");
+            authScreen.classList.remove("hidden");
+        }
+
+        function friendlyAuthError(error) {
+            const code = error?.code || "";
+            if (code.includes("auth/invalid-credential")) return "Email or password is incorrect.";
+            if (code.includes("auth/email-already-in-use")) return "That email already has an account.";
+            if (code.includes("auth/weak-password")) return "Password should be at least 6 characters.";
+            if (code.includes("auth/invalid-email")) return "Enter a valid email address.";
+            if (code.includes("auth/configuration-not-found")) return "Enable Email/Password sign-in in Firebase Authentication.";
+            return error?.message || "Something went wrong. Please try again.";
+        }
+
+        toggleAuth.addEventListener("click", () => setAuthMode(!isCreatingAccount));
+
+        authForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            authMessage.textContent = "";
+            authSubmit.disabled = true;
+            authSubmit.textContent = isCreatingAccount ? "Creating..." : "Signing in...";
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const displayName = displayNameInput.value.trim();
+
+            try {
+                if (isCreatingAccount) {
+                    const credential = await createUserWithEmailAndPassword(auth, email, password);
+
+                    await updateProfile(credential.user, { displayName });
+
+                    await setDoc(doc(db, "users", credential.user.uid), {
+                        uid: credential.user.uid,
+                        displayName,
+                        email,
+                        createdAt: serverTimestamp(),
+                        lastLoginAt: serverTimestamp()
+                    }, { merge: true });
+                } else {
+                    const credential = await signInWithEmailAndPassword(auth, email, password);
+
+                    await setDoc(doc(db, "users", credential.user.uid), {
+                        uid: credential.user.uid,
+                        email: credential.user.email,
+                        displayName: credential.user.displayName || "",
+                        lastLoginAt: serverTimestamp()
+                    }, { merge: true });
+                }
+            } catch (error) {
+                authMessage.textContent = friendlyAuthError(error);
+            } finally {
+                authSubmit.disabled = false;
+                authSubmit.textContent = isCreatingAccount ? "Create account" : "Sign in";
+            }
+        });
+
+        signOutBtn.addEventListener("click", async () => {
+            await signOut(auth);
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                showSite(user);
+            } else {
+                showAuth();
+            }
+        });
+    </script>
 </body>
 </html>

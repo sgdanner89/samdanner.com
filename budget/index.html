@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simple Budget Projector</title>
+  <title>Budget Projector</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -35,31 +35,22 @@
       padding: 22px;
     }
 
+    .hidden { display: none !important; }
+
     .screen {
       width: min(1180px, 100%);
       margin: 0 auto;
     }
 
-    .login-screen {
+    .loading-screen {
       min-height: calc(100vh - 44px);
       display: grid;
       place-items: center;
+      text-align: center;
+      color: var(--muted);
     }
 
-    .login-card {
-      width: min(460px, 100%);
-      background: var(--card);
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      border-radius: 24px;
-      padding: 30px;
-      backdrop-filter: blur(16px);
-    }
-
-    .app {
-      display: none;
-      gap: 18px;
-    }
+    .app { display: block; }
 
     header {
       display: flex;
@@ -80,10 +71,6 @@
     h2 {
       margin: 0 0 12px;
       letter-spacing: -0.04em;
-    }
-
-    .login-card h2 {
-      margin-top: 18px;
     }
 
     .subtitle {
@@ -137,9 +124,7 @@
       outline: none;
     }
 
-    input:focus, select:focus {
-      border-color: var(--accent);
-    }
+    input:focus, select:focus { border-color: var(--accent); }
 
     button {
       cursor: pointer;
@@ -156,13 +141,6 @@
       border: 1px solid var(--line);
     }
 
-    .toggle {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--line);
-      margin-top: 10px;
-    }
-
     .signout {
       width: auto;
       padding: 4px 8px;
@@ -174,11 +152,11 @@
       border: 1px solid var(--line);
     }
 
-    .note {
+    .save-status {
       color: var(--muted);
-      font-size: .85rem;
-      text-align: center;
-      margin-top: 14px;
+      font-size: .9rem;
+      margin-top: -8px;
+      margin-bottom: 16px;
     }
 
     .row {
@@ -234,9 +212,7 @@
       gap: 18px;
     }
 
-    canvas {
-      max-height: 320px;
-    }
+    canvas { max-height: 320px; }
 
     .month-list {
       display: grid;
@@ -255,55 +231,32 @@
       color: var(--muted);
     }
 
-    .month-item strong {
-      color: var(--text);
-    }
+    .month-item strong { color: var(--text); }
 
     @media (max-width: 850px) {
-      .grid, .charts, .dashboard {
-        grid-template-columns: 1fr;
-      }
-
-      .row, .row.expense {
-        grid-template-columns: 1fr;
-      }
+      .grid, .charts, .dashboard { grid-template-columns: 1fr; }
+      .row, .row.expense { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 
 <body>
-  <section id="loginScreen" class="screen login-screen">
-    <main class="login-card">
+  <section id="loadingScreen" class="screen loading-screen">
+    <div>
       <h1>Budget Projector</h1>
-      <p class="subtitle">Sign in to view your future balance, income, spending, and category breakdown.</p>
-
-      <h2 id="formTitle">Sign In</h2>
-
-      <label>Email</label>
-      <input id="email" type="email" placeholder="you@email.com" />
-
-      <label>Password</label>
-      <input id="password" type="password" placeholder="Password" />
-
-      <button id="submitBtn" onclick="submitForm()">Sign In</button>
-
-      <button id="toggleBtn" class="toggle" onclick="toggleMode()">
-        Create Account Instead
-      </button>
-
-      <div class="note">Demo only: this stores login status in your browser.</div>
-    </main>
+      <p>Checking your samdanner.com login...</p>
+    </div>
   </section>
 
-  <main id="budgetApp" class="screen app">
+  <main id="budgetApp" class="screen app hidden">
     <header>
       <div>
         <h1>Budget Projector</h1>
-        <div class="subtitle">Enter what comes in, what goes out, and your current bank amount. The app projects future balances and shows where spending is going.</div>
+        <div class="subtitle">Enter what comes in, what goes out, and your current bank amount. The app saves to your samdanner.com Firebase database.</div>
       </div>
       <div class="pill">
         Signed in as <span id="signedInUser"></span>
-        <button class="signout" onclick="signOut()">Sign out</button>
+        <button class="signout" id="signOutBtn">Sign out</button>
       </div>
     </header>
 
@@ -327,61 +280,39 @@
           <input id="startMonth" type="month" />
         </div>
         <div>
-          <button onclick="calculate()">Update Projection</button>
+          <button id="saveBtn">Save Budget</button>
         </div>
       </div>
     </section>
 
+    <div class="save-status" id="saveStatus">Loaded from Firebase when signed in.</div>
+
     <section class="dashboard">
-      <div class="stat">
-        <small>Monthly income</small>
-        <strong class="monthlyIncome">$0</strong>
-      </div>
-      <div class="stat">
-        <small>Monthly spending</small>
-        <strong class="monthlyExpenses">$0</strong>
-      </div>
-      <div class="stat">
-        <small>Monthly leftover</small>
-        <strong class="monthlyLeftover">$0</strong>
-      </div>
-      <div class="stat">
-        <small>Projected final balance</small>
-        <strong class="finalBalance">$0</strong>
-      </div>
+      <div class="stat"><small>Monthly income</small><strong class="monthlyIncome">$0</strong></div>
+      <div class="stat"><small>Monthly spending</small><strong class="monthlyExpenses">$0</strong></div>
+      <div class="stat"><small>Monthly leftover</small><strong class="monthlyLeftover">$0</strong></div>
+      <div class="stat"><small>Projected final balance</small><strong class="finalBalance">$0</strong></div>
     </section>
 
     <section class="grid">
       <div class="card">
         <h2>Income</h2>
         <div id="incomeRows"></div>
-        <button class="secondary" onclick="addIncome()">+ Add Income</button>
+        <button class="secondary" id="addIncomeBtn">+ Add Income</button>
       </div>
 
       <div class="card">
         <h2>Spending</h2>
         <div id="expenseRows"></div>
-        <button class="secondary" onclick="addExpense()">+ Add Spending</button>
+        <button class="secondary" id="addExpenseBtn">+ Add Spending</button>
       </div>
     </section>
 
     <section class="dashboard">
-      <div class="stat">
-        <small>Monthly income</small>
-        <strong class="monthlyIncome">$0</strong>
-      </div>
-      <div class="stat">
-        <small>Monthly spending</small>
-        <strong class="monthlyExpenses">$0</strong>
-      </div>
-      <div class="stat">
-        <small>Monthly leftover</small>
-        <strong class="monthlyLeftover">$0</strong>
-      </div>
-      <div class="stat">
-        <small>Projected final balance</small>
-        <strong class="finalBalance">$0</strong>
-      </div>
+      <div class="stat"><small>Monthly income</small><strong class="monthlyIncome">$0</strong></div>
+      <div class="stat"><small>Monthly spending</small><strong class="monthlyExpenses">$0</strong></div>
+      <div class="stat"><small>Monthly leftover</small><strong class="monthlyLeftover">$0</strong></div>
+      <div class="stat"><small>Projected final balance</small><strong class="finalBalance">$0</strong></div>
     </section>
 
     <section class="charts">
@@ -398,18 +329,36 @@
     </section>
   </main>
 
-  <script>
-    let createMode = false;
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDKuMY6XUp56VFszfMr7Lu7ZRXiuCWnu9Y",
+      authDomain: "samdanner-7d2a6.firebaseapp.com",
+      projectId: "samdanner-7d2a6",
+      storageBucket: "samdanner-7d2a6.firebasestorage.app",
+      messagingSenderId: "868408698259",
+      appId: "1:868408698259:web:e9e40dc257368c87293466",
+      measurementId: "G-5ZR9S8F03F"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
     let projectionChart;
     let categoryChart;
+    let saveTimer;
+    let isLoadingFromFirebase = false;
 
-    const frequencyMap = {
-      weekly: 4.33,
-      biweekly: 2.165,
-      monthly: 1,
-      yearly: 1 / 12,
-      once: 0
-    };
+    const frequencyMap = { weekly: 4.33, biweekly: 2.165, monthly: 1, yearly: 1 / 12, once: 0 };
+    const loadingScreen = document.getElementById("loadingScreen");
+    const budgetApp = document.getElementById("budgetApp");
+    const signedInUser = document.getElementById("signedInUser");
+    const saveStatus = document.getElementById("saveStatus");
 
     const money = value => Number(value || 0).toLocaleString("en-US", {
       style: "currency",
@@ -417,95 +366,46 @@
       maximumFractionDigits: 0
     });
 
-    function toggleMode() {
-      createMode = !createMode;
-
-      document.getElementById("formTitle").textContent =
-        createMode ? "Create Account" : "Sign In";
-
-      document.getElementById("submitBtn").textContent =
-        createMode ? "Create Account" : "Sign In";
-
-      document.getElementById("toggleBtn").textContent =
-        createMode ? "Already have an account? Sign In" : "Create Account Instead";
-    }
-
-    function submitForm() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      if (!email || !password) {
-        alert("Enter your email and password.");
-        return;
-      }
-
-      localStorage.setItem("budgetUser", email);
-
-      if (createMode) {
-        alert("Demo account created!");
-      }
-
-      showApp();
-    }
-
-    function showApp() {
-      const user = localStorage.getItem("budgetUser");
-
-      if (!user) {
-        document.getElementById("loginScreen").style.display = "grid";
-        document.getElementById("budgetApp").style.display = "none";
-        return;
-      }
-
-      document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("budgetApp").style.display = "block";
-      document.getElementById("signedInUser").textContent = user;
-      calculate();
-    }
-
-    function signOut() {
-      localStorage.removeItem("budgetUser");
-      document.getElementById("email").value = "";
-      document.getElementById("password").value = "";
-      showApp();
-    }
-
     function defaultStartMonth() {
       const now = new Date();
-      document.getElementById("startMonth").value =
-        `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      document.getElementById("startMonth").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function budgetDocRef() {
+      return doc(db, "users", currentUser.uid, "appData", "budget");
+    }
+
+    function setSaveStatus(message) {
+      saveStatus.textContent = message;
+    }
+
+    function clearRows() {
+      document.getElementById("incomeRows").innerHTML = "";
+      document.getElementById("expenseRows").innerHTML = "";
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
     }
 
     function addIncome(data = {}) {
       const row = document.createElement("div");
       row.className = "row";
       row.innerHTML = `
-        <div>
-          <label>Income name</label>
-          <input class="income-name" placeholder="Paycheck" value="${data.name || ""}">
-        </div>
-        <div>
-          <label>Amount</label>
-          <input class="income-amount" type="number" placeholder="0" value="${data.amount || ""}">
-        </div>
-        <div>
-          <label>Frequency</label>
-          <select class="income-frequency">
-            <option value="weekly">Weekly</option>
-            <option value="biweekly">Biweekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="yearly">Yearly</option>
-            <option value="once">One time</option>
-          </select>
-        </div>
-        <div>
-          <button class="delete" onclick="this.closest('.row').remove(); calculate();">Remove</button>
-        </div>
+        <div><label>Income name</label><input class="income-name" placeholder="Paycheck" value="${escapeHtml(data.name || "")}"></div>
+        <div><label>Amount</label><input class="income-amount" type="number" placeholder="0" value="${data.amount || ""}"></div>
+        <div><label>Frequency</label><select class="income-frequency"><option value="weekly">Weekly</option><option value="biweekly">Biweekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="once">One time</option></select></div>
+        <div><button class="delete" type="button">Remove</button></div>
       `;
 
       document.getElementById("incomeRows").appendChild(row);
       row.querySelector(".income-frequency").value = data.frequency || "biweekly";
-      row.querySelectorAll("input, select").forEach(el => el.addEventListener("input", calculate));
+      row.querySelector(".delete").addEventListener("click", () => { row.remove(); calculate(); autoSave(); });
+      row.querySelectorAll("input, select").forEach(el => el.addEventListener("input", () => { calculate(); autoSave(); }));
       calculate();
     }
 
@@ -513,36 +413,17 @@
       const row = document.createElement("div");
       row.className = "row expense";
       row.innerHTML = `
-        <div>
-          <label>Spending name</label>
-          <input class="expense-name" placeholder="Groceries" value="${data.name || ""}">
-        </div>
-        <div>
-          <label>Amount</label>
-          <input class="expense-amount" type="number" placeholder="0" value="${data.amount || ""}">
-        </div>
-        <div>
-          <label>Category</label>
-          <input class="expense-category" placeholder="Groceries" value="${data.category || ""}">
-        </div>
-        <div>
-          <label>Frequency</label>
-          <select class="expense-frequency">
-            <option value="weekly">Weekly</option>
-            <option value="biweekly">Biweekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="yearly">Yearly</option>
-            <option value="once">One time</option>
-          </select>
-        </div>
-        <div>
-          <button class="delete" onclick="this.closest('.row').remove(); calculate();">×</button>
-        </div>
+        <div><label>Spending name</label><input class="expense-name" placeholder="Groceries" value="${escapeHtml(data.name || "")}"></div>
+        <div><label>Amount</label><input class="expense-amount" type="number" placeholder="0" value="${data.amount || ""}"></div>
+        <div><label>Category</label><input class="expense-category" placeholder="Groceries" value="${escapeHtml(data.category || "")}"></div>
+        <div><label>Frequency</label><select class="expense-frequency"><option value="weekly">Weekly</option><option value="biweekly">Biweekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="once">One time</option></select></div>
+        <div><button class="delete" type="button">×</button></div>
       `;
 
       document.getElementById("expenseRows").appendChild(row);
       row.querySelector(".expense-frequency").value = data.frequency || "monthly";
-      row.querySelectorAll("input, select").forEach(el => el.addEventListener("input", calculate));
+      row.querySelector(".delete").addEventListener("click", () => { row.remove(); calculate(); autoSave(); });
+      row.querySelectorAll("input, select").forEach(el => el.addEventListener("input", () => { calculate(); autoSave(); }));
       calculate();
     }
 
@@ -557,17 +438,106 @@
 
     function getIncome() {
       return [...document.querySelectorAll("#incomeRows .row")].map(row => ({
-        amount: row.querySelector(".income-amount").value,
+        name: row.querySelector(".income-name").value,
+        amount: Number(row.querySelector(".income-amount").value || 0),
         frequency: row.querySelector(".income-frequency").value
       }));
     }
 
     function getExpenses() {
       return [...document.querySelectorAll("#expenseRows .row")].map(row => ({
-        amount: row.querySelector(".expense-amount").value,
+        name: row.querySelector(".expense-name").value,
+        amount: Number(row.querySelector(".expense-amount").value || 0),
         category: row.querySelector(".expense-category").value || "Uncategorized",
         frequency: row.querySelector(".expense-frequency").value
       }));
+    }
+
+    function collectBudgetData() {
+      return {
+        bankBalance: Number(document.getElementById("bankBalance").value || 0),
+        monthsAhead: Number(document.getElementById("monthsAhead").value || 6),
+        startMonth: document.getElementById("startMonth").value,
+        income: getIncome(),
+        expenses: getExpenses(),
+        updatedAt: serverTimestamp()
+      };
+    }
+
+    async function saveBudget() {
+      if (!currentUser || isLoadingFromFirebase) return;
+      try {
+        setSaveStatus("Saving...");
+        await setDoc(budgetDocRef(), collectBudgetData(), { merge: true });
+        setSaveStatus("Saved to Firebase.");
+      } catch (error) {
+        console.error(error);
+        setSaveStatus("Save failed. Check Firebase rules and console.");
+      }
+    }
+
+    function autoSave() {
+      if (!currentUser || isLoadingFromFirebase) return;
+      clearTimeout(saveTimer);
+      setSaveStatus("Unsaved changes...");
+      saveTimer = setTimeout(saveBudget, 700);
+    }
+
+    async function loadBudget() {
+      isLoadingFromFirebase = true;
+      setSaveStatus("Loading budget from Firebase...");
+
+      try {
+        const snap = await getDoc(budgetDocRef());
+        clearRows();
+
+        if (snap.exists()) {
+          const data = snap.data();
+          document.getElementById("bankBalance").value = data.bankBalance ?? 2500;
+          document.getElementById("monthsAhead").value = data.monthsAhead ?? 6;
+          document.getElementById("startMonth").value = data.startMonth || document.getElementById("startMonth").value;
+
+          const income = Array.isArray(data.income) ? data.income : [];
+          const expenses = Array.isArray(data.expenses) ? data.expenses : [];
+
+          income.forEach(item => addIncome(item));
+          expenses.forEach(item => addExpense(item));
+
+          if (income.length === 0) addIncome();
+          if (expenses.length === 0) addExpense();
+
+          setSaveStatus("Loaded from Firebase.");
+        } else {
+          loadStarterBudget();
+          setSaveStatus("Starter budget ready. Saving...");
+        }
+
+        calculate();
+      } catch (error) {
+        console.error(error);
+        clearRows();
+        loadStarterBudget();
+        setSaveStatus("Could not load Firebase data. Showing starter budget.");
+      } finally {
+        isLoadingFromFirebase = false;
+        if (!document.querySelector("#incomeRows .row")) addIncome();
+        if (!document.querySelector("#expenseRows .row")) addExpense();
+        saveBudget();
+      }
+    }
+
+    function loadStarterBudget() {
+      document.getElementById("bankBalance").value = 2500;
+      document.getElementById("monthsAhead").value = 6;
+      defaultStartMonth();
+      clearRows();
+      addIncome({ name: "Paycheck", amount: 1800, frequency: "biweekly" });
+      addIncome({ name: "One time side job", amount: 300, frequency: "once" });
+      addExpense({ name: "Rent", amount: 1200, category: "Housing", frequency: "monthly" });
+      addExpense({ name: "Groceries", amount: 130, category: "Groceries", frequency: "weekly" });
+      addExpense({ name: "Dog food / pet stuff", amount: 175, category: "Pets", frequency: "monthly" });
+      addExpense({ name: "Streaming", amount: 35, category: "Subscriptions", frequency: "monthly" });
+      calculate();
     }
 
     function calculate() {
@@ -577,10 +547,8 @@
       const balance = Number(document.getElementById("bankBalance").value || 0);
       const months = Number(document.getElementById("monthsAhead").value || 6);
       const [year, month] = startValue.split("-").map(Number);
-
       const incomes = getIncome();
       const expenses = getExpenses();
-
       const recurringIncome = incomes.reduce((sum, item) => sum + monthlyValue(item.amount, item.frequency), 0);
       const recurringExpenses = expenses.reduce((sum, item) => sum + monthlyValue(item.amount, item.frequency), 0);
       const oneTimeIncome = incomes.reduce((sum, item) => sum + oneTimeValue(item.amount, item.frequency), 0);
@@ -600,7 +568,6 @@
       for (let i = 0; i < months; i++) {
         const date = new Date(year, month - 1 + i, 1);
         running += leftover;
-
         projection.push({
           label: date.toLocaleString("en-US", { month: "short", year: "numeric" }),
           balance: Math.round(running)
@@ -619,46 +586,18 @@
     function renderProjection(projection) {
       const labels = projection.map(x => x.label);
       const data = projection.map(x => x.balance);
-
       if (projectionChart) projectionChart.destroy();
-
       projectionChart = new Chart(document.getElementById("projectionChart"), {
         type: "line",
-        data: {
-          labels,
-          datasets: [{
-            label: "Projected balance",
-            data,
-            tension: .35,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            y: {
-              ticks: {
-                callback: value => "$" + value.toLocaleString()
-              }
-            }
-          }
-        }
+        data: { labels, datasets: [{ label: "Projected balance", data, tension: .35, fill: true }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: value => "$" + value.toLocaleString() } } } }
       });
 
-      document.getElementById("monthList").innerHTML = projection.map(item => `
-        <div class="month-item">
-          <span>${item.label}</span>
-          <strong>${money(item.balance)}</strong>
-        </div>
-      `).join("");
+      document.getElementById("monthList").innerHTML = projection.map(item => `<div class="month-item"><span>${item.label}</span><strong>${money(item.balance)}</strong></div>`).join("");
     }
 
     function renderCategories(expenses) {
       const categories = {};
-
       expenses.forEach(item => {
         const monthly = monthlyValue(item.amount, item.frequency) + oneTimeValue(item.amount, item.frequency);
         categories[item.category] = (categories[item.category] || 0) + monthly;
@@ -666,44 +605,39 @@
 
       const labels = Object.keys(categories);
       const data = Object.values(categories).map(x => Math.round(x));
-
       if (categoryChart) categoryChart.destroy();
-
       categoryChart = new Chart(document.getElementById("categoryChart"), {
         type: "doughnut",
-        data: {
-          labels,
-          datasets: [{ data }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: "bottom" },
-            tooltip: {
-              callbacks: {
-                label: context => `${context.label}: ${money(context.raw)}`
-              }
-            }
-          }
-        }
+        data: { labels, datasets: [{ data }] },
+        options: { responsive: true, plugins: { legend: { position: "bottom" }, tooltip: { callbacks: { label: context => `${context.label}: ${money(context.raw)}` } } } }
       });
     }
 
+    document.getElementById("bankBalance").addEventListener("input", () => { calculate(); autoSave(); });
+    document.getElementById("monthsAhead").addEventListener("input", () => { calculate(); autoSave(); });
+    document.getElementById("startMonth").addEventListener("input", () => { calculate(); autoSave(); });
+    document.getElementById("saveBtn").addEventListener("click", saveBudget);
+    document.getElementById("addIncomeBtn").addEventListener("click", () => { addIncome(); autoSave(); });
+    document.getElementById("addExpenseBtn").addEventListener("click", () => { addExpense(); autoSave(); });
+    document.getElementById("signOutBtn").addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "/";
+    });
+
     defaultStartMonth();
 
-    document.getElementById("bankBalance").addEventListener("input", calculate);
-    document.getElementById("monthsAhead").addEventListener("input", calculate);
-    document.getElementById("startMonth").addEventListener("input", calculate);
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "/";
+        return;
+      }
 
-    addIncome({ name: "Paycheck", amount: 1800, frequency: "biweekly" });
-    addIncome({ name: "One time side job", amount: 300, frequency: "once" });
-
-    addExpense({ name: "Rent", amount: 1200, category: "Housing", frequency: "monthly" });
-    addExpense({ name: "Groceries", amount: 130, category: "Groceries", frequency: "weekly" });
-    addExpense({ name: "Dog food / pet stuff", amount: 175, category: "Pets", frequency: "monthly" });
-    addExpense({ name: "Streaming", amount: 35, category: "Subscriptions", frequency: "monthly" });
-
-    showApp();
+      currentUser = user;
+      signedInUser.textContent = user.displayName || user.email || "Signed in";
+      loadingScreen.classList.add("hidden");
+      budgetApp.classList.remove("hidden");
+      await loadBudget();
+    });
   </script>
 </body>
 </html>

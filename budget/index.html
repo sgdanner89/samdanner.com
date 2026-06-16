@@ -3,54 +3,707 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Budget Projector</title>
+  <title>Simple Budget Projector</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    :root{--bg:#101828;--card:rgba(255,255,255,.08);--card2:rgba(255,255,255,.12);--text:#f8fafc;--muted:#cbd5e1;--line:rgba(255,255,255,.16);--good:#86efac;--bad:#fca5a5;--accent:#93c5fd;--radius:22px;--shadow:0 18px 50px rgba(0,0,0,.28)}
-    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top left,#1e3a8a,transparent 36%),radial-gradient(circle at bottom right,#14532d,transparent 28%),var(--bg);color:var(--text);min-height:100vh;padding:22px}.screen{width:min(1180px,100%);margin:0 auto}.loading{min-height:calc(100vh - 44px);display:grid;place-items:center;color:var(--muted);text-align:center}.app{display:none}header{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:18px}h1{margin:0;font-size:clamp(2.4rem,8vw,4rem);letter-spacing:-.07em;line-height:.95}h2{margin:0 0 12px;letter-spacing:-.04em}.subtitle{color:var(--muted);margin:10px 0 24px;line-height:1.5;max-width:680px}.pill{border:1px solid var(--line);background:var(--card);padding:10px 14px;border-radius:999px;color:var(--muted);white-space:nowrap}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}.card{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:var(--radius);padding:18px;backdrop-filter:blur(16px);margin-bottom:18px}label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}input,select,button{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px;font-size:1rem;color:var(--text);background:rgba(15,23,42,.75);outline:none}input:focus,select:focus{border-color:var(--accent)}button{cursor:pointer;background:linear-gradient(135deg,#60a5fa,#34d399);color:#08111f;border:none;font-weight:800;margin-top:4px}button.secondary{background:var(--card2);color:var(--text);border:1px solid var(--line)}.signout{width:auto;padding:4px 8px;margin-left:8px;border-radius:999px;font-size:.8rem;background:rgba(255,255,255,.14);color:var(--text);border:1px solid var(--line)}.row{display:grid;grid-template-columns:1.4fr .8fr .9fr .9fr;gap:10px;margin-bottom:10px;align-items:end}.row.expense{grid-template-columns:1.3fr .75fr .9fr .8fr .35fr}.delete{padding:12px 0;background:rgba(248,113,113,.2);color:#fecaca;border:1px solid rgba(248,113,113,.28)}.dashboard{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.stat{background:var(--card2);border:1px solid var(--line);border-radius:18px;padding:16px}.stat small{display:block;color:var(--muted);margin-bottom:8px}.stat strong{font-size:clamp(1.5rem,4vw,2.4rem);letter-spacing:-.06em}.good{color:var(--good)}.bad{color:var(--bad)}.charts{display:grid;grid-template-columns:1.3fr .9fr;gap:18px}canvas{max-height:320px}.month-list{display:grid;gap:8px;margin-top:12px}.month-item{display:flex;justify-content:space-between;gap:12px;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--muted)}.month-item strong{color:var(--text)}@media(max-width:850px){.grid,.charts,.dashboard{grid-template-columns:1fr}.row,.row.expense{grid-template-columns:1fr}}
+    :root {
+      --bg: #101828;
+      --card: rgba(255,255,255,.08);
+      --card2: rgba(255,255,255,.12);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --line: rgba(255,255,255,.16);
+      --good: #86efac;
+      --bad: #fca5a5;
+      --accent: #93c5fd;
+      --radius: 22px;
+      --shadow: 0 18px 50px rgba(0,0,0,.28);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, #1e3a8a, transparent 36%),
+        radial-gradient(circle at bottom right, #14532d, transparent 28%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 22px;
+    }
+
+    .screen {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+    }
+
+    .login-screen {
+      min-height: calc(100vh - 44px);
+      display: grid;
+      place-items: center;
+    }
+
+    .login-card {
+      width: min(460px, 100%);
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 24px;
+      padding: 30px;
+      backdrop-filter: blur(16px);
+    }
+
+    .app {
+      display: none;
+      gap: 18px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.4rem, 8vw, 4rem);
+      letter-spacing: -0.07em;
+      line-height: .95;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      letter-spacing: -0.04em;
+    }
+
+    .login-card h2 {
+      margin-top: 18px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin: 10px 0 24px;
+      line-height: 1.5;
+      max-width: 680px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: var(--card);
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: 18px;
+      backdrop-filter: blur(16px);
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-size: .85rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input, select, button {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 1rem;
+      color: var(--text);
+      background: rgba(15, 23, 42, .75);
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    button {
+      cursor: pointer;
+      background: linear-gradient(135deg, #60a5fa, #34d399);
+      color: #08111f;
+      border: none;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    button.secondary {
+      background: var(--card2);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .toggle {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      margin-top: 10px;
+    }
+
+    .signout {
+      width: auto;
+      padding: 4px 8px;
+      margin-left: 8px;
+      border-radius: 999px;
+      font-size: .8rem;
+      background: rgba(255,255,255,.14);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: .85rem;
+      text-align: center;
+      margin-top: 14px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1.4fr .8fr .9fr .9fr;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: end;
+    }
+
+    .row.expense {
+      grid-template-columns: 1.3fr .75fr .9fr .8fr .35fr;
+    }
+
+    .delete {
+      padding: 12px 0;
+      background: rgba(248,113,113,.2);
+      color: #fecaca;
+      border: 1px solid rgba(248,113,113,.28);
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      background: var(--card2);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat strong {
+      font-size: clamp(1.5rem, 4vw, 2.4rem);
+      letter-spacing: -0.06em;
+    }
+
+    .good { color: var(--good); }
+    .bad { color: var(--bad); }
+
+    .charts {
+      display: grid;
+      grid-template-columns: 1.3fr .9fr;
+      gap: 18px;
+    }
+
+    canvas {
+      max-height: 320px;
+    }
+
+    .month-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .month-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(255,255,255,.07);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      color: var(--muted);
+    }
+
+    .month-item strong {
+      color: var(--text);
+    }
+
+    @media (max-width: 850px) {
+      .grid, .charts, .dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .row, .row.expense {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
-<body>
-  <section id="loadingScreen" class="screen loading"><div><h1>Budget Projector</h1><p class="subtitle">Checking login...</p></div></section>
-  <main id="budgetApp" class="screen app">
-    <header><div><h1>Budget Projector</h1><div class="subtitle">Enter what comes in, what goes out, and your current bank amount. The app projects future balances and shows where spending is going.</div></div><div class="pill">Signed in as <span id="signedInUser"></span><button class="signout" onclick="signOut()">Sign out</button></div></header>
-    <section class="card"><h2>Starting Point</h2><div class="row"><div><label>Amount in bank today</label><input id="bankBalance" type="number" value="2500" /></div><div><label>Projection length</label><select id="monthsAhead"><option value="3">3 months</option><option value="6" selected>6 months</option><option value="12">12 months</option></select></div><div><label>Start month</label><input id="startMonth" type="month" /></div><div><button onclick="calculateAndSave()">Update Projection</button></div></div></section>
-    <section class="dashboard"><div class="stat"><small>Monthly income</small><strong class="monthlyIncome">$0</strong></div><div class="stat"><small>Monthly spending</small><strong class="monthlyExpenses">$0</strong></div><div class="stat"><small>Monthly leftover</small><strong class="monthlyLeftover">$0</strong></div><div class="stat"><small>Projected final balance</small><strong class="finalBalance">$0</strong></div></section>
-    <section class="grid"><div class="card"><h2>Income</h2><div id="incomeRows"></div><button class="secondary" onclick="addIncome(); calculateAndSave();">+ Add Income</button></div><div class="card"><h2>Spending</h2><div id="expenseRows"></div><button class="secondary" onclick="addExpense(); calculateAndSave();">+ Add Spending</button></div></section>
-    <section class="dashboard"><div class="stat"><small>Monthly income</small><strong class="monthlyIncome">$0</strong></div><div class="stat"><small>Monthly spending</small><strong class="monthlyExpenses">$0</strong></div><div class="stat"><small>Monthly leftover</small><strong class="monthlyLeftover">$0</strong></div><div class="stat"><small>Projected final balance</small><strong class="finalBalance">$0</strong></div></section>
-    <section class="charts"><div class="card"><h2>Future Balance</h2><canvas id="projectionChart"></canvas><div id="monthList" class="month-list"></div></div><div class="card"><h2>Spending by Category</h2><canvas id="categoryChart"></canvas></div></section>
-  </main>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "PASTE_YOUR_API_KEY_HERE",
-      authDomain: "PASTE_YOUR_AUTH_DOMAIN_HERE",
-      projectId: "PASTE_YOUR_PROJECT_ID_HERE",
-      storageBucket: "PASTE_YOUR_STORAGE_BUCKET_HERE",
-      messagingSenderId: "PASTE_YOUR_MESSAGING_SENDER_ID_HERE",
-      appId: "PASTE_YOUR_APP_ID_HERE"
+<body>
+  <section id="loginScreen" class="screen login-screen">
+    <main class="login-card">
+      <h1>Budget Projector</h1>
+      <p class="subtitle">Sign in to view your future balance, income, spending, and category breakdown.</p>
+
+      <h2 id="formTitle">Sign In</h2>
+
+      <label>Email</label>
+      <input id="email" type="email" placeholder="you@email.com" />
+
+      <label>Password</label>
+      <input id="password" type="password" placeholder="Password" />
+
+      <button id="submitBtn" onclick="submitForm()">Sign In</button>
+
+      <button id="toggleBtn" class="toggle" onclick="toggleMode()">
+        Create Account Instead
+      </button>
+
+      <div class="note">Demo only: this stores login status in your browser.</div>
+    </main>
+  </section>
+
+  <main id="budgetApp" class="screen app">
+    <header>
+      <div>
+        <h1>Budget Projector</h1>
+        <div class="subtitle">Enter what comes in, what goes out, and your current bank amount. The app projects future balances and shows where spending is going.</div>
+      </div>
+      <div class="pill">
+        Signed in as <span id="signedInUser"></span>
+        <button class="signout" onclick="signOut()">Sign out</button>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>Starting Point</h2>
+      <div class="row">
+        <div>
+          <label>Amount in bank today</label>
+          <input id="bankBalance" type="number" value="2500" />
+        </div>
+        <div>
+          <label>Projection length</label>
+          <select id="monthsAhead">
+            <option value="3">3 months</option>
+            <option value="6" selected>6 months</option>
+            <option value="12">12 months</option>
+          </select>
+        </div>
+        <div>
+          <label>Start month</label>
+          <input id="startMonth" type="month" />
+        </div>
+        <div>
+          <button onclick="calculate()">Update Projection</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard">
+      <div class="stat">
+        <small>Monthly income</small>
+        <strong class="monthlyIncome">$0</strong>
+      </div>
+      <div class="stat">
+        <small>Monthly spending</small>
+        <strong class="monthlyExpenses">$0</strong>
+      </div>
+      <div class="stat">
+        <small>Monthly leftover</small>
+        <strong class="monthlyLeftover">$0</strong>
+      </div>
+      <div class="stat">
+        <small>Projected final balance</small>
+        <strong class="finalBalance">$0</strong>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h2>Income</h2>
+        <div id="incomeRows"></div>
+        <button class="secondary" onclick="addIncome()">+ Add Income</button>
+      </div>
+
+      <div class="card">
+        <h2>Spending</h2>
+        <div id="expenseRows"></div>
+        <button class="secondary" onclick="addExpense()">+ Add Spending</button>
+      </div>
+    </section>
+
+    <section class="dashboard">
+      <div class="stat">
+        <small>Monthly income</small>
+        <strong class="monthlyIncome">$0</strong>
+      </div>
+      <div class="stat">
+        <small>Monthly spending</small>
+        <strong class="monthlyExpenses">$0</strong>
+      </div>
+      <div class="stat">
+        <small>Monthly leftover</small>
+        <strong class="monthlyLeftover">$0</strong>
+      </div>
+      <div class="stat">
+        <small>Projected final balance</small>
+        <strong class="finalBalance">$0</strong>
+      </div>
+    </section>
+
+    <section class="charts">
+      <div class="card">
+        <h2>Future Balance</h2>
+        <canvas id="projectionChart"></canvas>
+        <div id="monthList" class="month-list"></div>
+      </div>
+
+      <div class="card">
+        <h2>Spending by Category</h2>
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let createMode = false;
+    let projectionChart;
+    let categoryChart;
+
+    const frequencyMap = {
+      weekly: 4.33,
+      biweekly: 2.165,
+      monthly: 1,
+      yearly: 1 / 12,
+      once: 0
     };
 
-    const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);let currentUser=null,projectionChart,categoryChart,saveTimer;const frequencyMap={weekly:4.33,biweekly:2.165,monthly:1,yearly:1/12,once:0};const money=v=>Number(v||0).toLocaleString("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0});
-    window.signOut=async function(){await firebaseSignOut(auth);window.location.href="/"};
-    onAuthStateChanged(auth,async user=>{if(!user){window.location.href="/";return}currentUser=user;document.getElementById("signedInUser").textContent=user.email||"Logged in";document.getElementById("loadingScreen").style.display="none";document.getElementById("budgetApp").style.display="block";defaultStartMonth();await loadBudget();calculate()});
-    function defaultStartMonth(){const n=new Date();document.getElementById("startMonth").value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`}
-    function budgetDocRef(){return doc(db,"users",currentUser.uid,"apps","budgetProjector")}
-    async function loadBudget(){const s=await getDoc(budgetDocRef());if(!s.exists()){addIncome({name:"Paycheck",amount:1800,frequency:"biweekly"},false);addIncome({name:"One time side job",amount:300,frequency:"once"},false);addExpense({name:"Rent",amount:1200,category:"Housing",frequency:"monthly"},false);addExpense({name:"Groceries",amount:130,category:"Groceries",frequency:"weekly"},false);addExpense({name:"Dog food / pet stuff",amount:175,category:"Pets",frequency:"monthly"},false);addExpense({name:"Streaming",amount:35,category:"Subscriptions",frequency:"monthly"},false);await saveBudget();return}const d=s.data();document.getElementById("bankBalance").value=d.bankBalance??2500;document.getElementById("monthsAhead").value=d.monthsAhead??6;document.getElementById("startMonth").value=d.startMonth||document.getElementById("startMonth").value;document.getElementById("incomeRows").innerHTML="";document.getElementById("expenseRows").innerHTML="";(d.income||[]).forEach(i=>addIncome(i,false));(d.expenses||[]).forEach(i=>addExpense(i,false))}
-    async function saveBudget(){if(!currentUser)return;await setDoc(budgetDocRef(),{bankBalance:Number(document.getElementById("bankBalance").value||0),monthsAhead:Number(document.getElementById("monthsAhead").value||6),startMonth:document.getElementById("startMonth").value,income:getIncome(true),expenses:getExpenses(true),updatedAt:serverTimestamp()},{merge:true})}
-    function saveSoon(){clearTimeout(saveTimer);saveTimer=setTimeout(saveBudget,500)}window.calculateAndSave=function(){calculate();saveSoon()};
-    window.addIncome=function(data={},shouldSave=true){const r=document.createElement("div");r.className="row";r.innerHTML=`<div><label>Income name</label><input class="income-name" placeholder="Paycheck" value="${data.name||""}"></div><div><label>Amount</label><input class="income-amount" type="number" placeholder="0" value="${data.amount||""}"></div><div><label>Frequency</label><select class="income-frequency"><option value="weekly">Weekly</option><option value="biweekly">Biweekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="once">One time</option></select></div><div><button class="delete" type="button">Remove</button></div>`;document.getElementById("incomeRows").appendChild(r);r.querySelector(".income-frequency").value=data.frequency||"biweekly";r.querySelector(".delete").addEventListener("click",()=>{r.remove();calculateAndSave()});r.querySelectorAll("input, select").forEach(e=>e.addEventListener("input",calculateAndSave));calculate();if(shouldSave)saveSoon()};
-    window.addExpense=function(data={},shouldSave=true){const r=document.createElement("div");r.className="row expense";r.innerHTML=`<div><label>Spending name</label><input class="expense-name" placeholder="Groceries" value="${data.name||""}"></div><div><label>Amount</label><input class="expense-amount" type="number" placeholder="0" value="${data.amount||""}"></div><div><label>Category</label><input class="expense-category" placeholder="Groceries" value="${data.category||""}"></div><div><label>Frequency</label><select class="expense-frequency"><option value="weekly">Weekly</option><option value="biweekly">Biweekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="once">One time</option></select></div><div><button class="delete" type="button">×</button></div>`;document.getElementById("expenseRows").appendChild(r);r.querySelector(".expense-frequency").value=data.frequency||"monthly";r.querySelector(".delete").addEventListener("click",()=>{r.remove();calculateAndSave()});r.querySelectorAll("input, select").forEach(e=>e.addEventListener("input",calculateAndSave));calculate();if(shouldSave)saveSoon()};
-    function monthlyValue(a,f){return f==="once"?0:Number(a||0)*frequencyMap[f]}function oneTimeValue(a,f){return f==="once"?Number(a||0):0}
-    function getIncome(names=false){return[...document.querySelectorAll("#incomeRows .row")].map(r=>{const i={amount:Number(r.querySelector(".income-amount").value||0),frequency:r.querySelector(".income-frequency").value};if(names)i.name=r.querySelector(".income-name").value.trim();return i})}
-    function getExpenses(names=false){return[...document.querySelectorAll("#expenseRows .row")].map(r=>{const i={amount:Number(r.querySelector(".expense-amount").value||0),category:r.querySelector(".expense-category").value.trim()||"Uncategorized",frequency:r.querySelector(".expense-frequency").value};if(names)i.name=r.querySelector(".expense-name").value.trim();return i})}
-    window.calculate=function(){const start=document.getElementById("startMonth").value;if(!start)return;const balance=Number(document.getElementById("bankBalance").value||0),months=Number(document.getElementById("monthsAhead").value||6),[year,month]=start.split("-").map(Number),incomes=getIncome(),expenses=getExpenses(),recurringIncome=incomes.reduce((s,i)=>s+monthlyValue(i.amount,i.frequency),0),recurringExpenses=expenses.reduce((s,i)=>s+monthlyValue(i.amount,i.frequency),0),oneTimeIncome=incomes.reduce((s,i)=>s+oneTimeValue(i.amount,i.frequency),0),oneTimeExpenses=expenses.reduce((s,i)=>s+oneTimeValue(i.amount,i.frequency),0),leftover=recurringIncome-recurringExpenses;document.querySelectorAll(".monthlyIncome").forEach(e=>e.textContent=money(recurringIncome));document.querySelectorAll(".monthlyExpenses").forEach(e=>e.textContent=money(recurringExpenses));document.querySelectorAll(".monthlyLeftover").forEach(e=>{e.textContent=money(leftover);e.className="monthlyLeftover "+(leftover>=0?"good":"bad")});let running=balance+oneTimeIncome-oneTimeExpenses;const projection=[];for(let i=0;i<months;i++){const d=new Date(year,month-1+i,1);running+=leftover;projection.push({label:d.toLocaleString("en-US",{month:"short",year:"numeric"}),balance:Math.round(running)})}document.querySelectorAll(".finalBalance").forEach(e=>{e.textContent=money(projection.at(-1)?.balance||balance);e.className="finalBalance "+((projection.at(-1)?.balance||0)>=0?"good":"bad")});renderProjection(projection);renderCategories(expenses)};
-    function renderProjection(p){const labels=p.map(x=>x.label),data=p.map(x=>x.balance);if(projectionChart)projectionChart.destroy();projectionChart=new Chart(document.getElementById("projectionChart"),{type:"line",data:{labels,datasets:[{label:"Projected balance",data,tension:.35,fill:true}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>"$"+v.toLocaleString()}}}}});document.getElementById("monthList").innerHTML=p.map(i=>`<div class="month-item"><span>${i.label}</span><strong>${money(i.balance)}</strong></div>`).join("")}
-    function renderCategories(expenses){const categories={};expenses.forEach(i=>{const m=monthlyValue(i.amount,i.frequency)+oneTimeValue(i.amount,i.frequency);categories[i.category]=(categories[i.category]||0)+m});const labels=Object.keys(categories),data=Object.values(categories).map(x=>Math.round(x));if(categoryChart)categoryChart.destroy();categoryChart=new Chart(document.getElementById("categoryChart"),{type:"doughnut",data:{labels,datasets:[{data}]},options:{responsive:true,plugins:{legend:{position:"bottom"},tooltip:{callbacks:{label:c=>`${c.label}: ${money(c.raw)}`}}}}})}
-    document.getElementById("bankBalance").addEventListener("input",calculateAndSave);document.getElementById("monthsAhead").addEventListener("input",calculateAndSave);document.getElementById("startMonth").addEventListener("input",calculateAndSave);
+    const money = value => Number(value || 0).toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0
+    });
+
+    function toggleMode() {
+      createMode = !createMode;
+
+      document.getElementById("formTitle").textContent =
+        createMode ? "Create Account" : "Sign In";
+
+      document.getElementById("submitBtn").textContent =
+        createMode ? "Create Account" : "Sign In";
+
+      document.getElementById("toggleBtn").textContent =
+        createMode ? "Already have an account? Sign In" : "Create Account Instead";
+    }
+
+    function submitForm() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (!email || !password) {
+        alert("Enter your email and password.");
+        return;
+      }
+
+      localStorage.setItem("budgetUser", email);
+
+      if (createMode) {
+        alert("Demo account created!");
+      }
+
+      showApp();
+    }
+
+    function showApp() {
+      const user = localStorage.getItem("budgetUser");
+
+      if (!user) {
+        document.getElementById("loginScreen").style.display = "grid";
+        document.getElementById("budgetApp").style.display = "none";
+        return;
+      }
+
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("budgetApp").style.display = "block";
+      document.getElementById("signedInUser").textContent = user;
+      calculate();
+    }
+
+    function signOut() {
+      localStorage.removeItem("budgetUser");
+      document.getElementById("email").value = "";
+      document.getElementById("password").value = "";
+      showApp();
+    }
+
+    function defaultStartMonth() {
+      const now = new Date();
+      document.getElementById("startMonth").value =
+        `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function addIncome(data = {}) {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `
+        <div>
+          <label>Income name</label>
+          <input class="income-name" placeholder="Paycheck" value="${data.name || ""}">
+        </div>
+        <div>
+          <label>Amount</label>
+          <input class="income-amount" type="number" placeholder="0" value="${data.amount || ""}">
+        </div>
+        <div>
+          <label>Frequency</label>
+          <select class="income-frequency">
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Biweekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+            <option value="once">One time</option>
+          </select>
+        </div>
+        <div>
+          <button class="delete" onclick="this.closest('.row').remove(); calculate();">Remove</button>
+        </div>
+      `;
+
+      document.getElementById("incomeRows").appendChild(row);
+      row.querySelector(".income-frequency").value = data.frequency || "biweekly";
+      row.querySelectorAll("input, select").forEach(el => el.addEventListener("input", calculate));
+      calculate();
+    }
+
+    function addExpense(data = {}) {
+      const row = document.createElement("div");
+      row.className = "row expense";
+      row.innerHTML = `
+        <div>
+          <label>Spending name</label>
+          <input class="expense-name" placeholder="Groceries" value="${data.name || ""}">
+        </div>
+        <div>
+          <label>Amount</label>
+          <input class="expense-amount" type="number" placeholder="0" value="${data.amount || ""}">
+        </div>
+        <div>
+          <label>Category</label>
+          <input class="expense-category" placeholder="Groceries" value="${data.category || ""}">
+        </div>
+        <div>
+          <label>Frequency</label>
+          <select class="expense-frequency">
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Biweekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+            <option value="once">One time</option>
+          </select>
+        </div>
+        <div>
+          <button class="delete" onclick="this.closest('.row').remove(); calculate();">×</button>
+        </div>
+      `;
+
+      document.getElementById("expenseRows").appendChild(row);
+      row.querySelector(".expense-frequency").value = data.frequency || "monthly";
+      row.querySelectorAll("input, select").forEach(el => el.addEventListener("input", calculate));
+      calculate();
+    }
+
+    function monthlyValue(amount, frequency) {
+      if (frequency === "once") return 0;
+      return Number(amount || 0) * frequencyMap[frequency];
+    }
+
+    function oneTimeValue(amount, frequency) {
+      return frequency === "once" ? Number(amount || 0) : 0;
+    }
+
+    function getIncome() {
+      return [...document.querySelectorAll("#incomeRows .row")].map(row => ({
+        amount: row.querySelector(".income-amount").value,
+        frequency: row.querySelector(".income-frequency").value
+      }));
+    }
+
+    function getExpenses() {
+      return [...document.querySelectorAll("#expenseRows .row")].map(row => ({
+        amount: row.querySelector(".expense-amount").value,
+        category: row.querySelector(".expense-category").value || "Uncategorized",
+        frequency: row.querySelector(".expense-frequency").value
+      }));
+    }
+
+    function calculate() {
+      const startValue = document.getElementById("startMonth").value;
+      if (!startValue) return;
+
+      const balance = Number(document.getElementById("bankBalance").value || 0);
+      const months = Number(document.getElementById("monthsAhead").value || 6);
+      const [year, month] = startValue.split("-").map(Number);
+
+      const incomes = getIncome();
+      const expenses = getExpenses();
+
+      const recurringIncome = incomes.reduce((sum, item) => sum + monthlyValue(item.amount, item.frequency), 0);
+      const recurringExpenses = expenses.reduce((sum, item) => sum + monthlyValue(item.amount, item.frequency), 0);
+      const oneTimeIncome = incomes.reduce((sum, item) => sum + oneTimeValue(item.amount, item.frequency), 0);
+      const oneTimeExpenses = expenses.reduce((sum, item) => sum + oneTimeValue(item.amount, item.frequency), 0);
+      const leftover = recurringIncome - recurringExpenses;
+
+      document.querySelectorAll(".monthlyIncome").forEach(el => el.textContent = money(recurringIncome));
+      document.querySelectorAll(".monthlyExpenses").forEach(el => el.textContent = money(recurringExpenses));
+      document.querySelectorAll(".monthlyLeftover").forEach(el => {
+        el.textContent = money(leftover);
+        el.className = "monthlyLeftover " + (leftover >= 0 ? "good" : "bad");
+      });
+
+      let running = balance + oneTimeIncome - oneTimeExpenses;
+      const projection = [];
+
+      for (let i = 0; i < months; i++) {
+        const date = new Date(year, month - 1 + i, 1);
+        running += leftover;
+
+        projection.push({
+          label: date.toLocaleString("en-US", { month: "short", year: "numeric" }),
+          balance: Math.round(running)
+        });
+      }
+
+      document.querySelectorAll(".finalBalance").forEach(el => {
+        el.textContent = money(projection.at(-1)?.balance || balance);
+        el.className = "finalBalance " + ((projection.at(-1)?.balance || 0) >= 0 ? "good" : "bad");
+      });
+
+      renderProjection(projection);
+      renderCategories(expenses);
+    }
+
+    function renderProjection(projection) {
+      const labels = projection.map(x => x.label);
+      const data = projection.map(x => x.balance);
+
+      if (projectionChart) projectionChart.destroy();
+
+      projectionChart = new Chart(document.getElementById("projectionChart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Projected balance",
+            data,
+            tension: .35,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: value => "$" + value.toLocaleString()
+              }
+            }
+          }
+        }
+      });
+
+      document.getElementById("monthList").innerHTML = projection.map(item => `
+        <div class="month-item">
+          <span>${item.label}</span>
+          <strong>${money(item.balance)}</strong>
+        </div>
+      `).join("");
+    }
+
+    function renderCategories(expenses) {
+      const categories = {};
+
+      expenses.forEach(item => {
+        const monthly = monthlyValue(item.amount, item.frequency) + oneTimeValue(item.amount, item.frequency);
+        categories[item.category] = (categories[item.category] || 0) + monthly;
+      });
+
+      const labels = Object.keys(categories);
+      const data = Object.values(categories).map(x => Math.round(x));
+
+      if (categoryChart) categoryChart.destroy();
+
+      categoryChart = new Chart(document.getElementById("categoryChart"), {
+        type: "doughnut",
+        data: {
+          labels,
+          datasets: [{ data }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: "bottom" },
+            tooltip: {
+              callbacks: {
+                label: context => `${context.label}: ${money(context.raw)}`
+              }
+            }
+          }
+        }
+      });
+    }
+
+    defaultStartMonth();
+
+    document.getElementById("bankBalance").addEventListener("input", calculate);
+    document.getElementById("monthsAhead").addEventListener("input", calculate);
+    document.getElementById("startMonth").addEventListener("input", calculate);
+
+    addIncome({ name: "Paycheck", amount: 1800, frequency: "biweekly" });
+    addIncome({ name: "One time side job", amount: 300, frequency: "once" });
+
+    addExpense({ name: "Rent", amount: 1200, category: "Housing", frequency: "monthly" });
+    addExpense({ name: "Groceries", amount: 130, category: "Groceries", frequency: "weekly" });
+    addExpense({ name: "Dog food / pet stuff", amount: 175, category: "Pets", frequency: "monthly" });
+    addExpense({ name: "Streaming", amount: 35, category: "Subscriptions", frequency: "monthly" });
+
+    showApp();
   </script>
 </body>
 </html>

@@ -2,352 +2,613 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Vocal Warmup Builder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Grand Staff Builder</title>
+
+<script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.3/build/cjs/vexflow.js"></script>
 
 <style>
-*{box-sizing:border-box}
+* { box-sizing: border-box; }
 
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#111827;
-  color:white;
-  padding:20px;
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background: #eef3f8;
 }
 
-.app{max-width:1200px;margin:auto}
-
-h1{margin:0 0 8px;font-size:2rem}
-.subtitle{color:#9ca3af;margin-bottom:18px}
-
-.panel{
-  background:#1f2937;
-  border:1px solid #374151;
-  border-radius:18px;
-  padding:18px;
-  margin-bottom:18px;
+.app {
+    max-width: 1300px;
+    margin: auto;
+    background: #071523;
+    color: white;
+    border-radius: 18px;
+    padding: 18px;
 }
 
-.row{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  align-items:center;
+.panel {
+    background: #0d1b2b;
+    border: 1px solid #40566e;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 14px;
 }
 
-.item{
-  background:#374151;
-  border:1px solid #4b5563;
-  padding:12px 16px;
-  border-radius:12px;
-  cursor:grab;
-  font-size:1.25rem;
-  user-select:none;
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
 }
 
-.item:hover{background:#4b5563}
-
-.staff-wrap{
-  background:#f9fafb;
-  color:#111827;
-  border-radius:16px;
-  padding:20px;
+.items, .build-row, .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-.staff{
-  position:relative;
-  height:310px;
-  border:2px dashed #9ca3af;
-  border-radius:14px;
-  background:white;
-  overflow:hidden;
+button, .tool {
+    border: 1px solid #526981;
+    border-radius: 10px;
+    background: #12283f;
+    color: white;
+    padding: 12px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
-.line{
-  position:absolute;
-  left:0;
-  right:0;
-  height:2px;
-  background:#111827;
+.tool {
+    min-width: 74px;
+    text-align: center;
 }
 
-.clef{
-  position:absolute;
-  left:25px;
-  top:47px;
-  font-size:130px;
-  line-height:1;
-  color:#111827;
-  pointer-events:none;
-  z-index:1;
+.tool.active {
+    background: #1664d9;
 }
 
-.note{
-  position:absolute;
-  width:54px;
-  height:54px;
-  display:grid;
-  place-items:center;
-  font-size:2.2rem;
-  cursor:pointer;
-  z-index:2;
-  color:#000;
+.symbol {
+    font-size: 30px;
 }
 
-.note small{
-  position:absolute;
-  top:43px;
-  font-size:.7rem;
-  color:#374151;
+.small {
+    font-size: 12px;
+    opacity: .85;
 }
 
-.controls{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  align-items:center;
+.slot {
+    width: 125px;
+    min-height: 125px;
+    background: white;
+    color: #111;
+    border-radius: 12px;
+    border: 2px dashed #9fb0c5;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 8px;
 }
 
-button{
-  border:none;
-  border-radius:12px;
-  padding:12px 18px;
-  cursor:pointer;
-  background:#22c55e;
-  color:#052e16;
-  font-weight:bold;
+.slot strong {
+    color: #075cff;
+    font-size: 22px;
 }
 
-button.secondary{background:#374151;color:white}
-button.danger{background:#ef4444;color:white}
-input[type="range"]{width:220px}
+.staff-box {
+    background: white;
+    border-radius: 14px;
+    padding: 12px;
+    overflow-x: auto;
+}
+
+#staff {
+    min-width: 1100px;
+}
+
+.play {
+    background: #22a047;
+    border-color: #37d66b;
+    font-size: 18px;
+}
+
+.stop {
+    background: #b91c1c;
+    border-color: #ef4444;
+    font-size: 18px;
+}
+
+.danger {
+    color: #ff7d89;
+    border-color: #ff5b6b;
+}
+
+.toggle.on {
+    background: #1d8d45;
+    border-color: #39d66b;
+}
+
+input {
+    width: 80px;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    text-align: center;
+}
 </style>
 </head>
 
 <body>
-
 <div class="app">
-  <h1>Vocal Warmup Builder</h1>
-  <div class="subtitle">Drag rhythmic notes or rests onto the treble staff. Vertical placement determines pitch.</div>
 
-  <div class="panel">
-    <h2>Rests</h2>
-    <div class="row">
-      <div class="item" draggable="true" data-symbol="𝄻" data-duration="4" data-rest="true">𝄻 Whole Rest</div>
-      <div class="item" draggable="true" data-symbol="𝄼" data-duration="2" data-rest="true">𝄼 Half Rest</div>
-      <div class="item" draggable="true" data-symbol="𝄽" data-duration="1" data-rest="true">𝄽 Quarter Rest</div>
-      <div class="item" draggable="true" data-symbol="𝄾" data-duration=".5" data-rest="true">𝄾 Eighth Rest</div>
-      <div class="item" draggable="true" data-symbol="𝄿" data-duration=".25" data-rest="true">𝄿 Sixteenth Rest</div>
+<h1>Grand Staff Builder</h1>
+
+<div class="grid">
+    <div class="panel">
+        <h3>1. Choose Pitch</h3>
+        <div class="items" id="pitchTools"></div>
     </div>
-  </div>
 
-  <div class="panel">
-    <h2>Rhythmic Notes</h2>
-    <div class="row">
-      <div class="item" draggable="true" data-symbol="𝅝" data-duration="4">𝅝 Whole</div>
-      <div class="item" draggable="true" data-symbol="𝅗𝅥" data-duration="2">𝅗𝅥 Half</div>
-      <div class="item" draggable="true" data-symbol="𝅗𝅥." data-duration="3">𝅗𝅥. Dotted Half</div>
-      <div class="item" draggable="true" data-symbol="♩" data-duration="1">♩ Quarter</div>
-      <div class="item" draggable="true" data-symbol="♪" data-duration=".5">♪ Eighth</div>
-      <div class="item" draggable="true" data-symbol="♪." data-duration=".75">♪. Dotted Eighth</div>
-      <div class="item" draggable="true" data-symbol="𝅘𝅥𝅯" data-duration=".25">𝅘𝅥𝅯 Sixteenth</div>
-      <div class="item" draggable="true" data-symbol="𝅘𝅥𝅯." data-duration=".375">𝅘𝅥𝅯. Dotted Sixteenth</div>
+    <div class="panel">
+        <h3>2. Choose Accidental</h3>
+        <div class="items" id="accidentalTools">
+            <button class="tool active" onclick="selectAccidental('natural', this)">♮ Natural</button>
+            <button class="tool" onclick="selectAccidental('flat', this)">♭ Flat</button>
+            <button class="tool" onclick="selectAccidental('sharp', this)">♯ Sharp</button>
+        </div>
     </div>
-  </div>
+</div>
 
-  <div class="panel staff-wrap">
-    <h2>Staff</h2>
+<div class="panel">
+    <h3>3. Choose Rhythm</h3>
+    <div class="items" id="rhythmTools"></div>
+</div>
 
-    <div id="staff" class="staff">
-      <div class="clef">𝄞</div>
+<div class="panel">
+    <h3>Build Area</h3>
+    <p>Click a pitch, choose natural/flat/sharp, then click a rhythm.</p>
+    <div class="build-row" id="buildRow"></div>
+</div>
 
-      <div class="line" style="top:80px"></div>
-      <div class="line" style="top:110px"></div>
-      <div class="line" style="top:140px"></div>
-      <div class="line" style="top:170px"></div>
-      <div class="line" style="top:200px"></div>
+<div class="panel">
+    <h3>Grand Staff Preview</h3>
+    <div class="staff-box">
+        <div id="staff"></div>
     </div>
-  </div>
+</div>
 
-  <div class="panel controls">
-    <button id="playBtn">▶ Play</button>
-    <button class="secondary" id="downBtn">Tempo -</button>
-    <button class="secondary" id="upBtn">Tempo +</button>
-    <button class="danger" id="clearBtn">Clear</button>
+<div class="panel controls">
+    <button class="play" onclick="startLoop()">▶ Play Loop</button>
+    <button class="stop" onclick="stopPlayback()">■ Stop</button>
+    <button onclick="transpose(-1)">← Half Step Down</button>
+    <button onclick="transpose(1)">→ Half Step Up</button>
 
-    <label>BPM: <strong id="bpmLabel">90</strong></label>
-    <input id="bpm" type="range" min="40" max="220" value="90">
+    <label>Tempo</label>
+    <input id="tempo" type="number" value="90" min="40" max="220">
 
-    <span>Current key: <strong id="keyLabel">C</strong></span>
-  </div>
+    <button id="metroBtn" class="toggle on" onclick="toggleMetronome()">Metronome On</button>
+    <button id="countBtn" class="toggle on" onclick="toggleCountIn()">4 Count In On</button>
+    <button class="danger" onclick="clearAll()">Clear All</button>
+</div>
+
 </div>
 
 <script>
-const staff = document.getElementById("staff");
-const bpmInput = document.getElementById("bpm");
-const bpmLabel = document.getElementById("bpmLabel");
-const keyLabel = document.getElementById("keyLabel");
+const VF = Vex.Flow;
 
-let dragged = null;
-let notes = [];
-let transposeSteps = 0;
-
-const keys = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-
-const treblePositions = [
-  { note:"F5", freq:698.46, y:80 },
-  { note:"E5", freq:659.25, y:95 },
-  { note:"D5", freq:587.33, y:110 },
-  { note:"C5", freq:523.25, y:125 },
-  { note:"B4", freq:493.88, y:140 },
-  { note:"A4", freq:440.00, y:155 },
-  { note:"G4", freq:392.00, y:170 },
-  { note:"F4", freq:349.23, y:185 },
-  { note:"E4", freq:329.63, y:200 }
+const pitches = [
+    "C3","D3","E3","F3","G3","A3","B3",
+    "C4","D4","E4","F4","G4","A4","B4",
+    "C5","D5","E5","F5","G5","A5","B5"
 ];
 
-document.querySelectorAll(".item").forEach(item=>{
-  item.addEventListener("dragstart",()=>{
-    dragged = {
-      symbol:item.dataset.symbol,
-      duration:Number(item.dataset.duration),
-      rest:item.dataset.rest === "true"
+const rhythms = [
+    { name: "Whole", symbol: "𝅝", duration: "w", beats: 4 },
+    { name: "Half", symbol: "𝅗𝅥", duration: "h", beats: 2 },
+    { name: "Dotted Half", symbol: "𝅗𝅥.", duration: "h", dots: 1, beats: 3 },
+    { name: "Quarter", symbol: "♩", duration: "q", beats: 1 },
+    { name: "Eighth", symbol: "♪", duration: "8", beats: .5 },
+    { name: "Dotted Eighth", symbol: "♪.", duration: "8", dots: 1, beats: .75 },
+    { name: "Sixteenth", symbol: "♬", duration: "16", beats: .25 },
+    { name: "Dotted Sixteenth", symbol: "♬.", duration: "16", dots: 1, beats: .375 },
+
+    { name: "Whole Rest", symbol: "𝄻", duration: "wr", beats: 4, rest: true },
+    { name: "Half Rest", symbol: "𝄼", duration: "hr", beats: 2, rest: true },
+    { name: "Dotted Half Rest", symbol: "𝄼.", duration: "hr", dots: 1, beats: 3, rest: true },
+    { name: "Quarter Rest", symbol: "𝄽", duration: "qr", beats: 1, rest: true },
+    { name: "Dotted Quarter Rest", symbol: "𝄽.", duration: "qr", dots: 1, beats: 1.5, rest: true },
+    { name: "Eighth Rest", symbol: "𝄾", duration: "8r", beats: .5, rest: true },
+    { name: "Dotted Eighth Rest", symbol: "𝄾.", duration: "8r", dots: 1, beats: .75, rest: true },
+    { name: "Sixteenth Rest", symbol: "𝄿", duration: "16r", beats: .25, rest: true },
+    { name: "Dotted Sixteenth Rest", symbol: "𝄿.", duration: "16r", dots: 1, beats: .375, rest: true }
+];
+
+let selectedPitch = null;
+let selectedAccidental = "natural";
+let pattern = [];
+let metronomeOn = true;
+let countInOn = true;
+let isPlaying = false;
+let audioCtx = null;
+let activeOscillators = [];
+
+const pitchTools = document.getElementById("pitchTools");
+const rhythmTools = document.getElementById("rhythmTools");
+const buildRow = document.getElementById("buildRow");
+
+pitches.forEach(p => {
+    const btn = document.createElement("button");
+    btn.className = "tool";
+    btn.innerHTML = `<div style="color:#4b91ff;font-size:24px;">${p}</div>`;
+    btn.onclick = () => {
+        selectedPitch = p;
+        document.querySelectorAll("#pitchTools .tool").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
     };
-  });
+    pitchTools.appendChild(btn);
 });
 
-staff.addEventListener("dragover",e=>e.preventDefault());
+rhythms.forEach(r => {
+    const btn = document.createElement("button");
+    btn.className = "tool";
+    btn.innerHTML = `<div class="symbol">${r.symbol}</div><div class="small">${r.name}</div>`;
+    btn.onclick = () => {
+        if (!selectedPitch && !r.rest) return alert("Choose a pitch first.");
 
-staff.addEventListener("drop",e=>{
-  e.preventDefault();
-  if(!dragged)return;
+        pattern.push({
+            pitch: r.rest ? "B4" : selectedPitch,
+            accidental: r.rest ? "natural" : selectedAccidental,
+            rhythm: r
+        });
 
-  const rect = staff.getBoundingClientRect();
-
-  const x = Math.max(e.clientX - rect.left, 130);
-  const rawY = e.clientY - rect.top;
-  const y = snapToPitch(rawY);
-  const pitch = getPitchFromY(y);
-
-  notes.push({
-    id:Date.now(),
-    x,
-    y,
-    symbol:dragged.symbol,
-    duration:dragged.duration,
-    rest:dragged.rest,
-    pitch
-  });
-
-  render();
+        renderBuildArea();
+        renderStaff();
+    };
+    rhythmTools.appendChild(btn);
 });
 
-function snapToPitch(y){
-  let closest = treblePositions[0];
+function selectAccidental(type, button) {
+    selectedAccidental = type;
+    document.querySelectorAll("#accidentalTools .tool").forEach(b => b.classList.remove("active"));
+    button.classList.add("active");
+}
 
-  for(const pos of treblePositions){
-    if(Math.abs(y - pos.y) < Math.abs(y - closest.y)){
-      closest = pos;
+function accidentalSymbol(type) {
+    if (type === "sharp") return "♯";
+    if (type === "flat") return "♭";
+    return "♮";
+}
+
+function renderBuildArea() {
+    buildRow.innerHTML = "";
+
+    pattern.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "slot";
+
+        const pitchLabel = item.rhythm.rest
+            ? "Rest"
+            : `${item.pitch}${accidentalSymbol(item.accidental)}`;
+
+        div.innerHTML = `
+            <div>
+                <button onclick="removeItem(${index})">×</button>
+                <div class="symbol">${item.rhythm.symbol}</div>
+                <strong>${pitchLabel}</strong>
+                <div>${item.rhythm.name}</div>
+            </div>
+        `;
+
+        buildRow.appendChild(div);
+    });
+}
+
+function renderStaff() {
+    const staffDiv = document.getElementById("staff");
+    staffDiv.innerHTML = "";
+
+    const renderer = new VF.Renderer(staffDiv, VF.Renderer.Backends.SVG);
+    renderer.resize(1100, 430);
+
+    const context = renderer.getContext();
+
+    const treble = new VF.Stave(40, 40, 1000);
+    treble.addClef("treble");
+    treble.setContext(context).draw();
+
+    const bass = new VF.Stave(40, 220, 1000);
+    bass.addClef("bass");
+    bass.setContext(context).draw();
+
+    new VF.StaveConnector(treble, bass).setType(VF.StaveConnector.type.BRACE).setContext(context).draw();
+    new VF.StaveConnector(treble, bass).setType(VF.StaveConnector.type.SINGLE_LEFT).setContext(context).draw();
+    new VF.StaveConnector(treble, bass).setType(VF.StaveConnector.type.SINGLE_RIGHT).setContext(context).draw();
+
+    const trebleNotes = [];
+    const bassNotes = [];
+
+    pattern.forEach(item => {
+        if (item.rhythm.rest) {
+            trebleNotes.push(makeVexNote(item, "treble"));
+            bassNotes.push(makeGhostNote(item.rhythm));
+            return;
+        }
+
+        const clef = getClef(item.pitch);
+        const note = makeVexNote(item, clef);
+
+        if (clef === "treble") {
+            trebleNotes.push(note);
+            bassNotes.push(makeGhostNote(item.rhythm));
+        } else {
+            bassNotes.push(note);
+            trebleNotes.push(makeGhostNote(item.rhythm));
+        }
+    });
+
+    if (!trebleNotes.length) return;
+
+    const trebleVoice = new VF.Voice({ num_beats: Math.max(pattern.length, 1), beat_value: 4 })
+        .setStrict(false)
+        .addTickables(trebleNotes);
+
+    const bassVoice = new VF.Voice({ num_beats: Math.max(pattern.length, 1), beat_value: 4 })
+        .setStrict(false)
+        .addTickables(bassNotes);
+
+    new VF.Formatter()
+        .joinVoices([trebleVoice])
+        .joinVoices([bassVoice])
+        .format([trebleVoice, bassVoice], 900);
+
+    trebleVoice.draw(context, treble);
+    bassVoice.draw(context, bass);
+}
+
+function makeVexNote(item, clef) {
+    const rhythm = item.rhythm;
+
+    const key = rhythm.rest
+        ? clef === "treble" ? "b/4" : "d/3"
+        : toVexKey(item.pitch);
+
+    const note = new VF.StaveNote({
+        clef,
+        keys: [key],
+        duration: rhythm.duration
+    });
+
+    if (!rhythm.rest) {
+        if (item.accidental === "sharp") note.addModifier(new VF.Accidental("#"), 0);
+        if (item.accidental === "flat") note.addModifier(new VF.Accidental("b"), 0);
+        if (item.accidental === "natural") note.addModifier(new VF.Accidental("n"), 0);
     }
-  }
 
-  return closest.y;
-}
-
-function getPitchFromY(y){
-  return treblePositions.find(pos => pos.y === y) || treblePositions[4];
-}
-
-function render(){
-  document.querySelectorAll(".note").forEach(n=>n.remove());
-
-  notes.forEach(n=>{
-    const el = document.createElement("div");
-    el.className = "note";
-    el.style.left = `${n.x - 27}px`;
-    el.style.top = `${n.y - 27}px`;
-    el.innerHTML = `${n.symbol}<small>${n.rest ? "rest" : n.pitch.note}</small>`;
-
-    el.onclick = ()=>{
-      notes = notes.filter(item=>item.id !== n.id);
-      render();
-    };
-
-    staff.appendChild(el);
-  });
-}
-
-function transposedFreq(freq){
-  return freq * Math.pow(2, transposeSteps / 12);
-}
-
-function playTone(freq,ms){
-  return new Promise(resolve=>{
-    if(!freq){
-      setTimeout(resolve,ms);
-      return;
+    if (rhythm.dots) {
+        VF.Dot.buildAndAttach([note], { all: true });
     }
 
-    const audio = new AudioContext();
-    const osc = audio.createOscillator();
-    const gain = audio.createGain();
+    return note;
+}
 
-    osc.type = "sine";
-    osc.frequency.value = transposedFreq(freq);
+function makeGhostNote(rhythm) {
+    let duration = rhythm.duration.replace("r", "");
+
+    const ghost = new VF.GhostNote({
+        duration
+    });
+
+    if (rhythm.dots) {
+        VF.Dot.buildAndAttach([ghost], { all: true });
+    }
+
+    return ghost;
+}
+
+function toVexKey(pitch) {
+    return pitch[0].toLowerCase() + "/" + pitch.slice(1);
+}
+
+function getClef(pitch) {
+    const octave = Number(pitch.slice(1));
+    return octave >= 4 ? "treble" : "bass";
+}
+
+function removeItem(index) {
+    pattern.splice(index, 1);
+    renderBuildArea();
+    renderStaff();
+}
+
+function clearAll() {
+    stopPlayback();
+    pattern = [];
+    renderBuildArea();
+    renderStaff();
+}
+
+function transpose(amount) {
+    pattern = pattern.map(item => {
+        if (item.rhythm.rest) return item;
+
+        const index = pitches.indexOf(item.pitch);
+        const next = Math.max(0, Math.min(pitches.length - 1, index + amount));
+
+        return {
+            ...item,
+            pitch: pitches[next]
+        };
+    });
+
+    renderBuildArea();
+    renderStaff();
+}
+
+function toggleMetronome() {
+    metronomeOn = !metronomeOn;
+    const btn = document.getElementById("metroBtn");
+    btn.classList.toggle("on", metronomeOn);
+    btn.textContent = metronomeOn ? "Metronome On" : "Metronome Off";
+}
+
+function toggleCountIn() {
+    countInOn = !countInOn;
+    const btn = document.getElementById("countBtn");
+    btn.classList.toggle("on", countInOn);
+    btn.textContent = countInOn ? "4 Count In On" : "4 Count In Off";
+}
+
+function getAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+    }
+
+    return audioCtx;
+}
+
+function getFrequency(pitch, accidental) {
+    const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    const letter = pitch[0];
+    const octave = Number(pitch.slice(1));
+
+    let noteIndex = noteNames.indexOf(letter);
+
+    if (accidental === "sharp") noteIndex += 1;
+    if (accidental === "flat") noteIndex -= 1;
+
+    let adjustedOctave = octave;
+
+    if (noteIndex < 0) {
+        noteIndex = 11;
+        adjustedOctave -= 1;
+    }
+
+    if (noteIndex > 11) {
+        noteIndex = 0;
+        adjustedOctave += 1;
+    }
+
+    const midi = (adjustedOctave + 1) * 12 + noteIndex;
+    return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+function playPianoNote(freq, startTime, duration = 0.5) {
+    const ctx = getAudioContext();
+
+    const masterGain = ctx.createGain();
+    masterGain.connect(ctx.destination);
+
+    masterGain.gain.setValueAtTime(0.0001, startTime);
+    masterGain.gain.exponentialRampToValueAtTime(0.35, startTime + 0.015);
+    masterGain.gain.exponentialRampToValueAtTime(0.18, startTime + 0.12);
+    masterGain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+    const harmonics = [
+        { mult: 1, gain: 1 },
+        { mult: 2, gain: 0.45 },
+        { mult: 3, gain: 0.22 },
+        { mult: 4, gain: 0.12 }
+    ];
+
+    harmonics.forEach(h => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq * h.mult, startTime);
+        gain.gain.setValueAtTime(h.gain, startTime);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        activeOscillators.push(osc);
+
+        osc.start(startTime);
+        osc.stop(startTime + duration + 0.05);
+    });
+}
+
+function playClick(startTime, strong = false) {
+    const ctx = getAudioContext();
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "square";
+    osc.frequency.setValueAtTime(strong ? 1400 : 900, startTime);
+
+    gain.gain.setValueAtTime(0.12, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.04);
 
     osc.connect(gain);
-    gain.connect(audio.destination);
+    gain.connect(ctx.destination);
 
-    gain.gain.setValueAtTime(.001,audio.currentTime);
-    gain.gain.exponentialRampToValueAtTime(.3,audio.currentTime+.02);
-    gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+ms/1000);
+    activeOscillators.push(osc);
 
-    osc.start();
-    osc.stop(audio.currentTime+ms/1000);
-
-    setTimeout(()=>{
-      audio.close();
-      resolve();
-    },ms);
-  });
+    osc.start(startTime);
+    osc.stop(startTime + 0.05);
 }
 
-async function play(){
-  const pattern = [...notes].sort((a,b)=>a.x-b.x);
-  const beat = 60000 / Number(bpmInput.value);
-
-  for(const n of pattern){
-    const duration = beat * n.duration;
-    await playTone(n.rest ? null : n.pitch.freq, duration);
-  }
-
-  transposeSteps = (transposeSteps + 1) % 12;
-  keyLabel.textContent = keys[transposeSteps];
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-document.getElementById("playBtn").onclick = play;
+async function startLoop() {
+    if (!pattern.length || isPlaying) return;
 
-document.getElementById("clearBtn").onclick = ()=>{
-  notes = [];
-  transposeSteps = 0;
-  keyLabel.textContent = "C";
-  render();
-};
+    isPlaying = true;
 
-document.getElementById("upBtn").onclick = ()=>{
-  bpmInput.value = Math.min(Number(bpmInput.value) + 5, 220);
-  bpmLabel.textContent = bpmInput.value;
-};
+    while (isPlaying) {
+        await playOneLoop();
+    }
+}
 
-document.getElementById("downBtn").onclick = ()=>{
-  bpmInput.value = Math.max(Number(bpmInput.value) - 5, 40);
-  bpmLabel.textContent = bpmInput.value;
-};
+async function playOneLoop() {
+    const ctx = getAudioContext();
+    const bpm = Number(document.getElementById("tempo").value);
+    const beatSeconds = 60 / bpm;
 
-bpmInput.oninput = ()=>{
-  bpmLabel.textContent = bpmInput.value;
-};
+    let time = ctx.currentTime + 0.1;
+    let totalSeconds = 0;
+
+    if (countInOn) {
+        for (let i = 0; i < 4; i++) {
+            if (metronomeOn) playClick(time, i === 0);
+            time += beatSeconds;
+            totalSeconds += beatSeconds;
+        }
+    }
+
+    for (const item of pattern) {
+        if (!isPlaying) break;
+
+        if (metronomeOn) playClick(time, true);
+
+        if (!item.rhythm.rest) {
+            const freq = getFrequency(item.pitch, item.accidental);
+            const noteLength = Math.max(0.2, item.rhythm.beats * beatSeconds * 0.9);
+            playPianoNote(freq, time, noteLength);
+        }
+
+        time += item.rhythm.beats * beatSeconds;
+        totalSeconds += item.rhythm.beats * beatSeconds;
+    }
+
+    await wait(totalSeconds * 1000);
+}
+
+function stopPlayback() {
+    isPlaying = false;
+
+    activeOscillators.forEach(osc => {
+        try { osc.stop(); } catch (e) {}
+    });
+
+    activeOscillators = [];
+}
+
+renderStaff();
 </script>
 
 </body>

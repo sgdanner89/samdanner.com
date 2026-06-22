@@ -258,11 +258,18 @@ const pitches = [
     "C5","D5","E5","F5","G5","A5","B5"
 ];
 
+const chromaticPitches = [
+    "C3","C#3","D3","D#3","E3","F3","F#3","G3","G#3","A3","A#3","B3",
+    "C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4",
+    "C5","C#5","D5","D#5","E5","F5","F#5","G5","G#5","A5","A#5","B5"
+];
+
 const rhythms = [
     { name: "Whole", symbol: "𝅝", duration: "w", beats: 4 },
     { name: "Half", symbol: "𝅗𝅥", duration: "h", beats: 2 },
     { name: "Dotted Half", symbol: "𝅗𝅥.", duration: "h", dots: 1, beats: 3 },
     { name: "Quarter", symbol: "♩", duration: "q", beats: 1 },
+    { name: "Dotted Quarter", symbol: "♩.", duration: "q", dots: 1, beats: 1.5 },
     { name: "Eighth", symbol: "♪", duration: "8", beats: .5 },
     { name: "Dotted Eighth", symbol: "♪.", duration: "8", dots: 1, beats: .75 },
     { name: "Sixteenth", symbol: "♬", duration: "16", beats: .25 },
@@ -285,6 +292,7 @@ let pattern = [];
 let metronomeOn = true;
 let countInOn = true;
 let isPlaying = false;
+let playbackToken = 0;
 let audioCtx = null;
 let activeOscillators = [];
 
@@ -312,11 +320,11 @@ rhythms.forEach(r => {
     btn.onclick = () => {
         if (!selectedPitch && !r.rest) return alert("Choose a pitch first.");
 
-        pattern.push({
+        pattern.push(normalizePatternItem({
             pitch: r.rest ? "B4" : selectedPitch,
             accidental: r.rest ? "natural" : selectedAccidental,
             rhythm: r
-        });
+        }));
 
         renderBuildArea();
         renderStaff();
@@ -336,7 +344,31 @@ function accidentalSymbol(type) {
     return "♮";
 }
 
+function normalizePatternItem(item) {
+    if (!item || !item.rhythm) return item;
+    if (item.rhythm.rest) return item;
+
+    const match = String(item.pitch).match(/^([A-G])([#b♯♭]?)(\d)$/);
+    if (!match) return item;
+
+    const letter = match[1];
+    const accidentalMark = match[2];
+    const octave = match[3];
+
+    let accidental = item.accidental || "natural";
+
+    if (accidentalMark === "#" || accidentalMark === "♯") accidental = "sharp";
+    if (accidentalMark === "b" || accidentalMark === "♭") accidental = "flat";
+
+    return {
+        ...item,
+        pitch: `${letter}${octave}`,
+        accidental
+    };
+}
+
 function renderBuildArea() {
+    pattern = pattern.map(normalizePatternItem);
     buildRow.innerHTML = "";
 
     pattern.forEach((item, index) => {
@@ -361,6 +393,8 @@ function renderBuildArea() {
 }
 
 function renderStaff() {
+    pattern = pattern.map(normalizePatternItem);
+
     const staffDiv = document.getElementById("staff");
     staffDiv.innerHTML = "";
 
@@ -385,6 +419,8 @@ function renderStaff() {
     const bassNotes = [];
 
     pattern.forEach(item => {
+        item = normalizePatternItem(item);
+
         if (item.rhythm.rest) {
             trebleNotes.push(makeVexNote(item, "treble"));
             bassNotes.push(makeGhostNote(item.rhythm));
@@ -423,6 +459,7 @@ function renderStaff() {
 }
 
 function makeVexNote(item, clef) {
+    item = normalizePatternItem(item);
     const rhythm = item.rhythm;
 
     const key = rhythm.rest
@@ -460,11 +497,24 @@ function makeGhostNote(rhythm) {
 }
 
 function toVexKey(pitch) {
-    return pitch[0].toLowerCase() + "/" + pitch.slice(1);
+    const normalized = normalizePatternItem({
+        pitch,
+        accidental: "natural",
+        rhythm: { rest: false }
+    });
+
+    const cleanPitch = normalized.pitch;
+    return cleanPitch[0].toLowerCase() + "/" + cleanPitch.slice(1);
 }
 
 function getClef(pitch) {
-    const octave = Number(pitch.slice(1));
+    const normalized = normalizePatternItem({
+        pitch,
+        accidental: "natural",
+        rhythm: { rest: false }
+    });
+
+    const octave = Number(normalized.pitch.slice(1));
     return octave >= 4 ? "treble" : "bass";
 }
 
@@ -481,17 +531,78 @@ window.clearAll = function() {
     renderStaff();
 };
 
+function pitchToChromaticName(pitch, accidental) {
+    const normalized = normalizePatternItem({
+        pitch,
+        accidental,
+        rhythm: { rest: false }
+    });
+
+    const letter = normalized.pitch[0];
+    const octave = Number(normalized.pitch.slice(1));
+
+    const naturalMap = {
+        C: 0,
+        D: 2,
+        E: 4,
+        F: 5,
+        G: 7,
+        A: 9,
+        B: 11
+    };
+
+    let semitone = naturalMap[letter];
+
+    if (normalized.accidental === "sharp") semitone += 1;
+    if (normalized.accidental === "flat") semitone -= 1;
+
+    let adjustedOctave = octave;
+
+    if (semitone < 0) {
+        semitone = 11;
+        adjustedOctave -= 1;
+    }
+
+    if (semitone > 11) {
+        semitone = 0;
+        adjustedOctave += 1;
+    }
+
+    const names = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+    return `${names[semitone]}${adjustedOctave}`;
+}
+
+function chromaticNameToPatternPitch(chromaticName) {
+    const match = chromaticName.match(/^([A-G])(#?)(\d)$/);
+    if (!match) return null;
+
+    return {
+        pitch: `${match[1]}${match[3]}`,
+        accidental: match[2] === "#" ? "sharp" : "natural"
+    };
+}
+
 window.transpose = function(amount) {
+    stopPlayback();
+
     pattern = pattern.map(item => {
+        item = normalizePatternItem(item);
+
         if (item.rhythm.rest) return item;
 
-        const index = pitches.indexOf(item.pitch);
-        const next = Math.max(0, Math.min(pitches.length - 1, index + amount));
+        const current = pitchToChromaticName(item.pitch, item.accidental);
+        const index = chromaticPitches.indexOf(current);
 
-        return {
+        if (index === -1) return item;
+
+        const nextIndex = Math.max(0, Math.min(chromaticPitches.length - 1, index + amount));
+        const next = chromaticNameToPatternPitch(chromaticPitches[nextIndex]);
+
+        return normalizePatternItem({
             ...item,
-            pitch: pitches[next]
-        };
+            pitch: next.pitch,
+            accidental: next.accidental
+        });
     });
 
     renderBuildArea();
@@ -525,28 +636,14 @@ function getAudioContext() {
 }
 
 function getFrequency(pitch, accidental) {
-    const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-    const letter = pitch[0];
-    const octave = Number(pitch.slice(1));
+    const current = pitchToChromaticName(pitch, accidental);
+    const match = current.match(/^([A-G]#?)(\d)$/);
 
-    let noteIndex = noteNames.indexOf(letter);
+    const noteNames = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+    const note = match[1];
+    const octave = Number(match[2]);
 
-    if (accidental === "sharp") noteIndex += 1;
-    if (accidental === "flat") noteIndex -= 1;
-
-    let adjustedOctave = octave;
-
-    if (noteIndex < 0) {
-        noteIndex = 11;
-        adjustedOctave -= 1;
-    }
-
-    if (noteIndex > 11) {
-        noteIndex = 0;
-        adjustedOctave += 1;
-    }
-
-    const midi = (adjustedOctave + 1) * 12 + noteIndex;
+    const midi = (octave + 1) * 12 + noteNames.indexOf(note);
     return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
@@ -612,16 +709,21 @@ function wait(ms) {
 }
 
 window.startLoop = async function() {
-    if (!pattern.length || isPlaying) return;
+    if (!pattern.length) return;
+
+    stopPlayback();
 
     isPlaying = true;
+    playbackToken++;
 
-    while (isPlaying) {
-        await playOneLoop();
+    const myToken = playbackToken;
+
+    while (isPlaying && myToken === playbackToken) {
+        await playOneLoop(myToken);
     }
 };
 
-async function playOneLoop() {
+async function playOneLoop(myToken) {
     const bpm = Number(document.getElementById("tempo").value);
     const beatSeconds = 60 / bpm;
     const ctx = getAudioContext();
@@ -631,14 +733,19 @@ async function playOneLoop() {
 
     if (countInOn) {
         for (let i = 0; i < 4; i++) {
+            if (!isPlaying || myToken !== playbackToken) return;
+
             if (metronomeOn) playClick(time, i === 0);
+
             time += beatSeconds;
             totalSeconds += beatSeconds;
         }
     }
 
-    for (const item of pattern) {
-        if (!isPlaying) break;
+    const playbackPattern = pattern.map(normalizePatternItem);
+
+    for (const item of playbackPattern) {
+        if (!isPlaying || myToken !== playbackToken) return;
 
         if (metronomeOn) playClick(time, true);
 
@@ -657,6 +764,7 @@ async function playOneLoop() {
 
 window.stopPlayback = function() {
     isPlaying = false;
+    playbackToken++;
 
     activeOscillators.forEach(osc => {
         try { osc.stop(); } catch (e) {}
@@ -679,6 +787,8 @@ window.saveExercise = async function() {
     }
 
     try {
+        pattern = pattern.map(normalizePatternItem);
+
         await addDoc(exercisesCollection, {
             name,
             pattern,
@@ -735,7 +845,8 @@ window.loadSelectedExercise = async function() {
 
     stopPlayback();
 
-    pattern = data.pattern || [];
+    pattern = (data.pattern || []).map(normalizePatternItem);
+
     document.getElementById("exerciseName").value = data.name || "";
     document.getElementById("tempo").value = data.tempo || 90;
 
@@ -762,6 +873,8 @@ window.deleteSelectedExercise = async function() {
 
     const confirmed = confirm("Delete this saved exercise?");
     if (!confirmed) return;
+
+    stopPlayback();
 
     await deleteDoc(doc(db, "vocalWarmupExercises", id));
 
